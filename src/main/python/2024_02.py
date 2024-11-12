@@ -9,7 +9,6 @@ import sys
 from ec.common import InputData
 from ec.common import SolutionBase
 from ec.common import ec_samples
-from ec.common import log
 
 Output1 = int
 Output2 = int
@@ -40,12 +39,12 @@ TRODEOAL
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
     def part_1(self, input: InputData) -> Output1:
-        words, inscription = input[0][OFFSET:].split(","), input[2]
+        words, inscription = set(input[0][OFFSET:].split(",")), input[2]
         return sum(inscription.count(w) for w in words)
 
     def part_2(self, input: InputData) -> Output2:
-        words, inscription = input[0][OFFSET:].split(","), input[2:]
-        words.extend([w[::-1] for w in words])
+        words, inscription = set(input[0][OFFSET:].split(",")), input[2:]
+        words |= {w[::-1] for w in words}
         ans = 0
         for line in inscription:
             runes = set[int]()
@@ -56,31 +55,24 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         return ans
 
     def part_3(self, input: InputData) -> Output3:
-        words, inscription = input[0][OFFSET:].split(","), input[2:]
+        words, inscription = set(input[0][OFFSET:].split(",")), input[2:]
+        words |= {w[::-1] for w in words}
         extra = max(len(w) for w in words)
         runes = set[tuple[int, int]]()
         for i, line in enumerate(inscription):
-            log(line)
             for w in words:
-                log(f" -> {w}")
                 for m in re.finditer(rf"(?={w})", line + line[:extra]):
-                    log(f"    -> ({i}, {m.start()})")
                     runes |= {
                         (i, j % len(line))
                         for j in range(m.start(), m.start() + len(w))
                     }
-            log(f"{len(runes)}")
         for c in range(len(inscription[0])):
             line = "".join(inscription[r][c] for r in range(len(inscription)))
-            log(line)
             for w in words:
-                log(f" -> {w}")
                 for m in re.finditer(rf"(?={w})", line):
-                    log(f"    -> ({m.start()}, {c})")
                     runes |= {
                         (j, c) for j in range(m.start(), m.start() + len(w))
                     }
-            log(f"{len(runes)}")
         return len(runes)
 
     @ec_samples(
