@@ -9,6 +9,7 @@ from enum import unique
 from typing import Any
 from typing import Callable
 from typing import Generic
+from typing import Iterator
 from typing import NamedTuple
 from typing import TypeVar
 from typing import cast
@@ -242,3 +243,6 @@ class Cell(NamedTuple):
 
     def at(self, direction: Direction) -> Cell:
         return Cell(self.row - direction.y, self.col + direction.x)
+
+    def get_capital_neighbours(self) -> Iterator[Cell]:
+        return (self.at(d) for d in Direction.capitals())
