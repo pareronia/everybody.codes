@@ -14,6 +14,7 @@ from typing import NamedTuple
 from typing import TypeVar
 from typing import cast
 
+import ec.memo as memo
 from prettyprinter import cpprint
 
 DIR_INPUTS = os.path.join(os.getcwd(), "inputs")
@@ -35,42 +36,10 @@ class Quest:
         self.day = day
 
     def get_input(self, part: int) -> tuple[str, ...]:
-        return tuple(
-            _ for _ in self.read_lines_from_file(self.get_input_file(part))
-        )
+        return memo.get_input(self.year, self.day, part)
 
     def get_answer(self, part: int) -> str | None:
-        f = self.get_answer_file(part)
-        if not os.path.exists(f):
-            return None
-        lines = self.read_lines_from_file(f)
-        if len(lines) == 0:
-            return None
-        return lines[0]
-
-    def get_part_string(self, part: int) -> str:
-        if part not in {1, 2, 3}:
-            raise ValueError("part should be 1, 2 or 3")
-        return "a" if part == 1 else "b" if part == 2 else "c"
-
-    def get_input_file(self, part: int) -> str:
-        p = self.get_part_string(part)
-        return os.path.join(
-            DIR_INPUTS,
-            f"{self.year}_{self.day:02}{p}_input.txt",
-        )
-
-    def get_answer_file(self, part: int) -> str:
-        p = self.get_part_string(part)
-        return os.path.join(
-            DIR_INPUTS,
-            f"{self.year}_{self.day:02}{p}_answer.txt",
-        )
-
-    def read_lines_from_file(self, file: str) -> list[str]:
-        with open(file, "r", encoding="utf-8") as f:
-            data = f.read()
-        return data.rstrip("\r\n").splitlines()
+        return memo.get_answer(self.year, self.day, part)
 
 
 InputData = tuple[str, ...]
