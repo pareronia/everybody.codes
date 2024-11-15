@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import calendar
 import os
 import time
 from abc import ABC
 from abc import abstractmethod
+from datetime import datetime
+from datetime import timedelta
 from enum import Enum
 from enum import unique
 from typing import Any
@@ -15,9 +18,10 @@ from typing import TypeVar
 from typing import cast
 
 import ec.memo as memo
+from dateutil.tz import gettz
 from prettyprinter import cpprint
 
-DIR_INPUTS = os.path.join(os.getcwd(), "inputs")
+EVERYBODY_CODES_TZ = gettz("Europe/Warsaw")
 
 
 def clog(c: Callable[[], object]) -> None:
@@ -35,7 +39,50 @@ class Quest:
         self.year = year
         self.day = day
 
-    def get_input(self, part: int) -> tuple[str, ...]:
+    def is_released(self) -> bool:
+        now = datetime.now(tz=EVERYBODY_CODES_TZ)
+        if self.year < now.year:
+            return True
+        if self.year > now.year:
+            return False
+        if now > datetime(self.year, 12, 1, tzinfo=EVERYBODY_CODES_TZ):
+            return True
+        month = 11
+        last_day_num = calendar.monthrange(self.year, month)[1]
+        last_weekday_num = calendar.weekday(self.year, month, last_day_num)
+        last_friday_num = last_day_num - ((7 - (4 - last_weekday_num)) % 7)
+        last_friday = datetime(
+            self.year, month, last_friday_num, tzinfo=EVERYBODY_CODES_TZ
+        )
+        offset = {
+            20: 1,
+            19: 0,
+            18: -1,
+            17: -2,
+            16: -3,
+            15: -6,
+            14: -7,
+            13: -8,
+            12: -9,
+            11: -10,
+            10: -13,
+            9: -14,
+            8: -15,
+            7: -16,
+            6: -17,
+            5: -20,
+            4: -21,
+            3: -22,
+            2: -23,
+            1: -24,
+        }
+        released = last_friday + timedelta(days=offset[self.day])
+        return now > released
+
+    def get_title(self) -> str | None:
+        return memo.get_title(self.year, self.day)
+
+    def get_input(self, part: int) -> tuple[str, ...] | None:
         return memo.get_input(self.year, self.day, part)
 
     def get_answer(self, part: int) -> str | None:
@@ -64,14 +111,17 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
 
     class PartExecution(NamedTuple):
         part: SolutionBase.Part
-        answer: Any
-        duration: int
+        answer: Any = None
+        duration: int = 0
+        no_input: bool = False
 
         @property
         def duration_as_ms(self) -> float:
             return self.duration / 1_000_000
 
         def __repr__(self) -> str:
+            if self.no_input:
+                return f"Part {self.part}: == NO INPUT FOUND =="
             return (
                 f"Part {self.part}:"
                 f" {self.answer}, took {self.duration_as_ms:.3f} ms"
@@ -101,6 +151,8 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
             part: SolutionBase.Part, f: Callable[[InputData], Any]
         ) -> SolutionBase.PartExecution:
             input = self.quest.get_input(part.int_value())
+            if input is None:
+                return SolutionBase.PartExecution(part, no_input=True)
             start = time.time()
             answer = f(input)
             return SolutionBase.PartExecution(
@@ -117,8 +169,15 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
                 return f"Part {part}: Expected: '{expected}', got: '{result}'"
             return ""
 
+        header = f"everybody.codes {self.quest.year} Quest {self.quest.day}"
+        if not self.quest.is_released():
+            print()
+            print(f"{header}: == Quest not available yet ==")
+            print()
+            return
+        title = self.quest.get_title()
         print()
-        print(f"everybody.codes {self.quest.year} Quest {self.quest.day}")
+        print(header + ("" if title is None else f": {title}"))
         print()
         if __debug__:
             self.samples()

@@ -2,6 +2,8 @@ import json
 import os
 import sys
 
+from ec.api import API
+
 
 def get_everybody_codes_dir() -> str:
     if "EVERYBODY_CODES_DIR" in os.environ:
@@ -46,10 +48,20 @@ def get_input_file(year: int, day: int, part: int) -> str:
     return os.path.join(get_memo_dir(), f"{year}_{day:02}{p}_input.txt")
 
 
-def get_input(year: int, day: int, part: int) -> tuple[str, ...]:
-    return tuple(
-        _ for _ in read_lines_from_file(get_input_file(year, day, part))
-    )
+def download_input(year: int, day: int, part: int) -> str | None:
+    return API(get_token()).get_input(year, day, part)
+
+
+def get_input(year: int, day: int, part: int) -> tuple[str, ...] | None:
+    file = get_input_file(year, day, part)
+    if not os.path.exists(file):
+        input = download_input(year, day, part)
+        if input is not None:
+            write_text_to_file(file, input)
+            return tuple(_ for _ in input.splitlines())
+        else:
+            return None
+    return tuple(_ for _ in read_lines_from_file(file))
 
 
 def get_answer_file(year: int, day: int, part: int) -> str:
@@ -58,16 +70,42 @@ def get_answer_file(year: int, day: int, part: int) -> str:
 
 
 def get_answer(year: int, day: int, part: int) -> str | None:
-    f = get_answer_file(year, day, part)
-    if not os.path.exists(f):
+    file = get_answer_file(year, day, part)
+    if not os.path.exists(file):
         return None
-    lines = read_lines_from_file(f)
+    lines = read_lines_from_file(file)
     if len(lines) == 0:
         return None
     return lines[0]
+
+
+def get_title_file(year: int, day: int) -> str:
+    return os.path.join(
+        get_everybody_codes_dir(), "titles", f"{year}_{day:02}.txt"
+    )
+
+
+def download_title(year: int, day: int) -> str | None:
+    return API(get_token()).get_title(year, day)
+
+
+def get_title(year: int, day: int) -> str | None:
+    file = get_title_file(year, day)
+    if not os.path.exists(file):
+        title = download_title(year, day)
+        if title is not None:
+            write_text_to_file(file, title)
+        return title
+    return read_lines_from_file(file)[0]
 
 
 def read_lines_from_file(file: str) -> list[str]:
     with open(file, "r", encoding="utf-8") as f:
         data = f.read()
     return data.rstrip("\r\n").splitlines()
+
+
+def write_text_to_file(file: str, text: str) -> None:
+    os.makedirs(os.path.dirname(file), exist_ok=True)
+    with open(file, "w", encoding="utf-8") as f:
+        f.write(text)
