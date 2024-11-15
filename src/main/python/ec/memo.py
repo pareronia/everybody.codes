@@ -1,8 +1,9 @@
+import json
 import os
 import sys
 
 
-def get_memo_dir() -> str:
+def get_everybody_codes_dir() -> str:
     if "EVERYBODY_CODES_DIR" in os.environ:
         return os.environ["EVERYBODY_CODES_DIR"]
     else:
@@ -17,8 +18,21 @@ def get_memo_dir() -> str:
 
 
 def get_token() -> str:
-    file = os.path.join(get_memo_dir(), "token")
+    if "EVERYBODY_CODES_TOKEN" in os.environ:
+        return os.environ["EVERYBODY_CODES_TOKEN"]
+    file = os.path.join(get_everybody_codes_dir(), "token")
     return read_lines_from_file(file)[0]
+
+
+def get_user_id(token: str) -> str:
+    file = os.path.join(get_everybody_codes_dir(), "token2id.json")
+    with open(file, "r", encoding="utf-8") as f:
+        ids = json.load(f)
+    return str(ids[token])
+
+
+def get_memo_dir() -> str:
+    return os.path.join(get_everybody_codes_dir(), get_user_id(get_token()))
 
 
 def get_part_string(part: int) -> str:
@@ -29,11 +43,7 @@ def get_part_string(part: int) -> str:
 
 def get_input_file(year: int, day: int, part: int) -> str:
     p = get_part_string(part)
-    return os.path.join(
-        get_memo_dir(),
-        get_token(),
-        f"{year}_{day:02}{p}_input.txt",
-    )
+    return os.path.join(get_memo_dir(), f"{year}_{day:02}{p}_input.txt")
 
 
 def get_input(year: int, day: int, part: int) -> tuple[str, ...]:
@@ -44,11 +54,7 @@ def get_input(year: int, day: int, part: int) -> tuple[str, ...]:
 
 def get_answer_file(year: int, day: int, part: int) -> str:
     p = get_part_string(part)
-    return os.path.join(
-        get_memo_dir(),
-        get_token(),
-        f"{year}_{day:02}{p}_answer.txt",
-    )
+    return os.path.join(get_memo_dir(), f"{year}_{day:02}{p}_answer.txt")
 
 
 def get_answer(year: int, day: int, part: int) -> str | None:
