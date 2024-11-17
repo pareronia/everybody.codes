@@ -2,7 +2,8 @@ import http.client
 import logging
 import os
 import sys
-from typing import Any
+from typing import ReadOnly
+from typing import TypedDict
 
 import requests
 from cryptography.hazmat.primitives.ciphers import Cipher
@@ -11,7 +12,15 @@ from cryptography.hazmat.primitives.ciphers import modes
 
 
 class API:
-    """Hat tip to https://github.com/CodingAP/everybody-codes"""
+    """See: https://old.reddit.com/r/everybodycodes/wiki/index"""
+
+    class QuestData(TypedDict, total=False):
+        key1: ReadOnly[str]
+        key2: ReadOnly[str]
+        key3: ReadOnly[str]
+        answer1: ReadOnly[str]
+        answer2: ReadOnly[str]
+        answer3: ReadOnly[str]
 
     API_URL = "https://everybody.codes/api"
     ASSET_URL = "https://everybody-codes.b-cdn.net/assets"
@@ -35,35 +44,56 @@ class API:
             self.seed = str(response.json()["seed"])
         return self.seed
 
-    def get_encryption_keys(self, year: int, day: int) -> Any:
+    def get_quest_data(self, year: int, day: int) -> QuestData:
         response = requests.get(
             f"{self.API_URL}/event/{year}/quest/{day}",
             headers=self.headers,
             timeout=10,
         )
         logger.debug(response.text)
-        return response.json()
+        quest_data: API.QuestData = response.json()
+        return quest_data
+
+    def get_answer(self, year: int, day: int, part: int) -> str | None:
+        quest_data = self.get_quest_data(year, day)
+        match part:
+            case 1:
+                return quest_data.get("answer1", None)
+            case 2:
+                return quest_data.get("answer2", None)
+            case 3:
+                return quest_data.get("answer3", None)
+            case _:
+                raise ValueError()
 
     def get_title(self, year: int, day: int) -> str | None:
-        keys = self.get_encryption_keys(year, day)
+        quest_data = self.get_quest_data(year, day)
         response = requests.get(
             f"{self.ASSET_URL}/{year}/{day}/description.json", timeout=10
         )
-        if "key1" not in keys:
+        if "key1" not in quest_data:
             return None
-        return self.decrypt_text(response.json()["title"], keys["key1"])
+        return self.decrypt_text(response.json()["title"], quest_data["key1"])
 
     def get_input(self, year: int, day: int, part: int) -> str | None:
-        keys = self.get_encryption_keys(year, day)
-        key = f"key{part}"
-        if key not in keys:
+        quest_data = self.get_quest_data(year, day)
+        match part:
+            case 1:
+                key = quest_data.get("key1", None)
+            case 2:
+                key = quest_data.get("key2", None)
+            case 3:
+                key = quest_data.get("key3", None)
+            case _:
+                raise ValueError()
+        if key is None:
             return None
         seed = self.get_seed()
         response = requests.get(
             f"{self.ASSET_URL}/{year}/{day}/input/{seed}.json", timeout=10
         )
         logger.debug(response.text)
-        return self.decrypt_text(response.json()[str(part)], keys[key])
+        return self.decrypt_text(response.json()[str(part)], key)
 
     def decrypt_text(self, cipher_text: str, key_string: str) -> str:
         key = key_string[:20] + "~" + key_string[21:]

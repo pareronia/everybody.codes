@@ -56,11 +56,9 @@ def get_input(year: int, day: int, part: int) -> tuple[str, ...] | None:
     file = get_input_file(year, day, part)
     if not os.path.exists(file):
         input = download_input(year, day, part)
-        if input is not None:
-            write_text_to_file(file, input)
-            return tuple(_ for _ in input.splitlines())
-        else:
+        if input is None:
             return None
+        write_text_to_file(file, input)
     return tuple(_ for _ in read_lines_from_file(file))
 
 
@@ -69,10 +67,17 @@ def get_answer_file(year: int, day: int, part: int) -> str:
     return os.path.join(get_memo_dir(), f"{year}_{day:02}{p}_answer.txt")
 
 
+def download_answer(year: int, day: int, part: int) -> str | None:
+    return API(get_token()).get_answer(year, day, part)
+
+
 def get_answer(year: int, day: int, part: int) -> str | None:
     file = get_answer_file(year, day, part)
     if not os.path.exists(file):
-        return None
+        answer = download_answer(year, day, part)
+        if answer is None:
+            return None
+        write_text_to_file(file, answer)
     lines = read_lines_from_file(file)
     if len(lines) == 0:
         return None
@@ -93,9 +98,9 @@ def get_title(year: int, day: int) -> str | None:
     file = get_title_file(year, day)
     if not os.path.exists(file):
         title = download_title(year, day)
-        if title is not None:
-            write_text_to_file(file, title)
-        return title
+        if title is None:
+            return None
+        write_text_to_file(file, title)
     return read_lines_from_file(file)[0]
 
 
