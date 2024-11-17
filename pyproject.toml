@@ -22,6 +22,7 @@ filename = "*.py"
 
 [tool.mypy]
 strict = true
+python_executable = "python"
 
 [[tool.mypy.overrides]]
 module = "prettyprinter.*"
