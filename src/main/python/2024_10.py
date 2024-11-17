@@ -60,6 +60,7 @@ TJ....YK....LP
 class Solution(SolutionBase[Output1, Output2, Output3]):
     def solve(self, grid: CharGrid, start: Cell) -> RunicWordAndPower:
         r_s, c_s = start
+
         block = [
             (r_s + rr, c_s + cc) for rr in range(2, 6) for cc in range(2, 6)
         ]
@@ -70,8 +71,10 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             row = {grid[r][c_s + i] for i in {0, 1, 6, 7}}
             col = {grid[r_s + i][c] for i in {0, 1, 6, 7}}
             both = row & col
-            if len(both):
+            if len(both) == 1:
                 grid[r][c] = next(iter(both))
+            elif len(both) > 1:
+                return RunicWordAndPower.unsolvable()
 
         for r, c in block:
             if grid[r][c] not in {".", "?"}:
