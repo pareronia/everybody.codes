@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import calendar
 import os
 import time
 from abc import ABC
 from abc import abstractmethod
-from datetime import datetime
-from datetime import timedelta
 from enum import Enum
 from enum import unique
 from typing import Any
@@ -18,10 +15,9 @@ from typing import TypeVar
 from typing import cast
 
 import ec.memo as memo
-from dateutil.tz import gettz
 from prettyprinter import cpprint
 
-EVERYBODY_CODES_TZ = gettz("Europe/Warsaw")
+from . import is_released
 
 
 def clog(c: Callable[[], object]) -> None:
@@ -40,44 +36,7 @@ class Quest:
         self.day = day
 
     def is_released(self) -> bool:
-        now = datetime.now(tz=EVERYBODY_CODES_TZ)
-        if self.year < now.year:
-            return True
-        if self.year > now.year:
-            return False
-        if now > datetime(self.year, 12, 1, tzinfo=EVERYBODY_CODES_TZ):
-            return True
-        month = 11
-        last_day_num = calendar.monthrange(self.year, month)[1]
-        last_weekday_num = calendar.weekday(self.year, month, last_day_num)
-        last_friday_num = last_day_num - ((7 - (4 - last_weekday_num)) % 7)
-        last_friday = datetime(
-            self.year, month, last_friday_num, tzinfo=EVERYBODY_CODES_TZ
-        )
-        offset = {
-            20: 1,
-            19: 0,
-            18: -1,
-            17: -2,
-            16: -3,
-            15: -6,
-            14: -7,
-            13: -8,
-            12: -9,
-            11: -10,
-            10: -13,
-            9: -14,
-            8: -15,
-            7: -16,
-            6: -17,
-            5: -20,
-            4: -21,
-            3: -22,
-            2: -23,
-            1: -24,
-        }
-        released = last_friday + timedelta(days=offset[self.day])
-        return now > released
+        return is_released(self.year, self.day)
 
     def get_title(self) -> str | None:
         return memo.get_title(self.year, self.day)

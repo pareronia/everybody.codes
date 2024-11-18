@@ -4,24 +4,23 @@ import sys
 
 from ec.api import API
 
+from . import EVERYBODY_CODES_DIR
+from . import EVERYBODY_CODES_TOKEN
+
 
 def get_everybody_codes_dir() -> str:
-    if "EVERYBODY_CODES_DIR" in os.environ:
-        return os.environ["EVERYBODY_CODES_DIR"]
-    else:
-        if sys.platform.startswith("win"):
-            return os.path.join(os.environ["APPDATA"], "everybody.codes")
-        elif sys.platform.startswith("linux"):
-            return os.path.join(
-                os.environ["HOME"], ".config", "everybody.codes"
-            )
-        else:
-            raise RuntimeError("OS not supported")
+    if EVERYBODY_CODES_DIR in os.environ:
+        return os.environ[EVERYBODY_CODES_DIR]
+    if sys.platform.startswith("win"):
+        return os.path.join(os.environ["APPDATA"], "everybody.codes")
+    if sys.platform.startswith("linux"):
+        return os.path.join(os.environ["HOME"], ".config", "everybody.codes")
+    raise RuntimeError("OS not supported")
 
 
 def get_token() -> str:
-    if "EVERYBODY_CODES_TOKEN" in os.environ:
-        return os.environ["EVERYBODY_CODES_TOKEN"]
+    if EVERYBODY_CODES_TOKEN in os.environ:
+        return os.environ[EVERYBODY_CODES_TOKEN]
     file = os.path.join(get_everybody_codes_dir(), "token")
     return read_lines_from_file(file)[0]
 

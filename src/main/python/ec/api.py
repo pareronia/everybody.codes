@@ -12,13 +12,12 @@ from cryptography.hazmat.primitives.ciphers import Cipher
 from cryptography.hazmat.primitives.ciphers import algorithms
 from cryptography.hazmat.primitives.ciphers import modes
 
-
-EVERYBODY_CODES_ONLINE = "EVERYBODY_CODES_ONLINE"
+from . import is_online
 
 
 def check_online[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     def inner(*args: P.args, **kwargs: P.kwargs) -> Any:
-        if EVERYBODY_CODES_ONLINE not in os.environ:
+        if not is_online():
             print("= OFFLINE =", file=sys.stderr)
             return None
         return func(*args, **kwargs)
