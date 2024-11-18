@@ -2,6 +2,8 @@ import http.client
 import logging
 import os
 import sys
+from typing import Any
+from typing import Callable
 from typing import ReadOnly
 from typing import TypedDict
 
@@ -9,6 +11,19 @@ import requests
 from cryptography.hazmat.primitives.ciphers import Cipher
 from cryptography.hazmat.primitives.ciphers import algorithms
 from cryptography.hazmat.primitives.ciphers import modes
+
+
+EVERYBODY_CODES_ONLINE = "EVERYBODY_CODES_ONLINE"
+
+
+def check_online[**P, T](func: Callable[P, T]) -> Callable[P, T]:
+    def inner(*args: P.args, **kwargs: P.kwargs) -> Any:
+        if EVERYBODY_CODES_ONLINE not in os.environ:
+            print("= OFFLINE =", file=sys.stderr)
+            return None
+        return func(*args, **kwargs)
+
+    return inner
 
 
 class API:
@@ -35,25 +50,25 @@ class API:
         }
         self.seed: str | None = None
 
+    def do_get(self, url: str) -> requests.Response:
+        return requests.get(url, headers=self.headers, timeout=10)
+
+    @check_online
     def get_seed(self) -> str:
         if self.seed is None:
-            response = requests.get(
-                f"{self.API_URL}/user/me", headers=self.headers, timeout=10
-            )
+            response = self.do_get(f"{self.API_URL}/user/me")
             logger.debug(response.json())
             self.seed = str(response.json()["seed"])
         return self.seed
 
+    @check_online
     def get_quest_data(self, year: int, day: int) -> QuestData:
-        response = requests.get(
-            f"{self.API_URL}/event/{year}/quest/{day}",
-            headers=self.headers,
-            timeout=10,
-        )
+        response = self.do_get(f"{self.API_URL}/event/{year}/quest/{day}")
         logger.debug(response.text)
         quest_data: API.QuestData = response.json()
         return quest_data
 
+    @check_online
     def get_answer(self, year: int, day: int, part: int) -> str | None:
         quest_data = self.get_quest_data(year, day)
         match part:
@@ -66,15 +81,17 @@ class API:
             case _:
                 raise ValueError()
 
+    @check_online
     def get_title(self, year: int, day: int) -> str | None:
         quest_data = self.get_quest_data(year, day)
-        response = requests.get(
-            f"{self.ASSET_URL}/{year}/{day}/description.json", timeout=10
-        )
         if "key1" not in quest_data:
             return None
+        response = self.do_get(
+            f"{self.ASSET_URL}/{year}/{day}/description.json"
+        )
         return self.decrypt_text(response.json()["title"], quest_data["key1"])
 
+    @check_online
     def get_input(self, year: int, day: int, part: int) -> str | None:
         quest_data = self.get_quest_data(year, day)
         match part:
@@ -89,8 +106,8 @@ class API:
         if key is None:
             return None
         seed = self.get_seed()
-        response = requests.get(
-            f"{self.ASSET_URL}/{year}/{day}/input/{seed}.json", timeout=10
+        response = self.do_get(
+            f"{self.ASSET_URL}/{year}/{day}/input/{seed}.json"
         )
         logger.debug(response.text)
         return self.decrypt_text(response.json()[str(part)], key)
