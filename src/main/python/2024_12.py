@@ -5,12 +5,11 @@
 
 import sys
 
-from ec.common import Cell
 from ec.common import Direction
 from ec.common import InputData
+from ec.common import Position
 from ec.common import SolutionBase
 from ec.common import ec_samples
-from ec.common import log
 
 Output1 = int
 Output2 = int
@@ -31,86 +30,51 @@ TEST2 = """\
 =============
 """
 
+CATAPULTS = {(Position(1, 1), 1), (Position(1, 2), 2), (Position(1, 3), 3)}
+
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
 
-    def calc_path(self, catapult: Cell, power: int) -> set[Cell]:
-        ans = set[Cell]()
-        c = Cell(catapult.row, catapult.col)
-        for _ in range(power):
-            c = c.at(Direction.RIGHT_AND_UP)
-            ans.add(c)
-        for _ in range(power):
-            c = c.at(Direction.RIGHT)
-            ans.add(c)
-        while c.row < 120:
-            c = c.at(Direction.RIGHT_AND_DOWN)
-            ans.add(c)
+    def parse(self, input: InputData) -> dict[Position, int]:
+        return {
+            Position(x, len(input) - y - 1): 1 if input[y][x] == "T" else 2
+            for x in range(len(input[0]))
+            for y in range(len(input))
+            if input[y][x] in {"H", "T"}
+        }
+
+    def at_my_signal_unleash_hell(
+        self, targets: dict[Position, int], max_power: int
+    ) -> int:
+        def score(pos: Position, power: int, segment: int) -> int:
+            if targets.get(pos, 0) != 0:
+                score = power * segment * targets[pos]
+                targets[pos] = 0
+                return score
+            return 0
+
+        ans = 0
+        for catapult in CATAPULTS:
+            for power in range(max_power):
+                pos = catapult[0]
+                for _ in range(power):
+                    pos = pos.at(Direction.RIGHT_AND_UP)
+                    ans += score(pos, power, catapult[1])
+                for _ in range(power):
+                    pos = pos.at(Direction.RIGHT)
+                    ans += score(pos, power, catapult[1])
+                while pos.y > 0:
+                    pos = pos.at(Direction.RIGHT_AND_DOWN)
+                    ans += score(pos, power, catapult[1])
         return ans
 
     def part_1(self, input: InputData) -> Output1:
-        targets = []
-        for r, line in enumerate(list(input)[1:], start=100):
-            for c, ch in enumerate(line[1:]):
-                if ch == "T":
-                    targets.append(Cell(r, c))
-        log(targets)
-
-        ans = 0
-        targets = sorted(targets, key=lambda t: t.row)
-        while targets:
-            t = targets.pop(0)
-            for catapult, segment in {
-                (Cell(102, 0), 1),
-                (Cell(101, 0), 2),
-                (Cell(100, 0), 3),
-            }:
-                for power in range(20):
-                    path = self.calc_path(catapult, power)
-                    if t in path:
-                        break
-                else:
-                    continue
-                log(f"Hit: {t}")
-                ans += segment * power
-        return ans
+        targets = self.parse(input)
+        return self.at_my_signal_unleash_hell(targets, 20)
 
     def part_2(self, input: InputData) -> Output2:
-        targets = []
-        for r, line in enumerate(list(input)[1:], start=100):
-            for c, ch in enumerate(line[1:]):
-                if ch in {"H", "T"}:
-                    targets.append((Cell(r, c), ch))
-
-        paths = dict[tuple[Cell, ...], int]()
-        for catapult, segment in {
-            (Cell(102, 0), 1),
-            (Cell(101, 0), 2),
-            (Cell(100, 0), 3),
-        }:
-            for power in range(50):
-                path = self.calc_path(catapult, power)
-                paths[tuple(path)] = power * segment
-        targets = sorted(targets, key=lambda t: t[0].row)
-        ans = 0
-        cnt = 0
-        while targets:
-            t, ch = targets.pop(0)
-            x = [a for a in paths.items() if t in a[0]]
-            assert len(x) == 1
-            for p in paths.keys():
-                if t in p:
-                    break
-            else:
-                continue
-            log(f"Hit: {t}")
-            cnt += 1
-            if ch == "H":
-                ans += 2 * paths[p]
-            else:
-                ans += paths[p]
-        log(cnt)
-        return ans
+        targets = self.parse(input)
+        return self.at_my_signal_unleash_hell(targets, 40)
 
     def part_3(self, input: InputData) -> Output3:
         return 0

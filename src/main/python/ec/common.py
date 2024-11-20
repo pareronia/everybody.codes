@@ -233,3 +233,11 @@ class Cell(NamedTuple):
 
     def get_capital_neighbours(self) -> Iterator[Cell]:
         return (self.at(d) for d in Direction.capitals())
+
+
+class Position(NamedTuple):
+    x: int
+    y: int
+
+    def at(self, direction: Direction) -> Position:
+        return Position(self.x + direction.x, self.y + direction.y)
