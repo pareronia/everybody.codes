@@ -17,7 +17,7 @@
 |[10](https://everybody.codes/event/2024/quests/10)|[✓](src/main/python/2024_10.py)|
 |[11](https://everybody.codes/event/2024/quests/11)|[✓](src/main/python/2024_11.py)|
 |[12](https://everybody.codes/event/2024/quests/12)||
-|[13](https://everybody.codes/event/2024/quests/13)||
+|[13](https://everybody.codes/event/2024/quests/13)|[✓](src/main/python/2024_13.py)|
 |[14](https://everybody.codes/event/2024/quests/14)||
 |[15](https://everybody.codes/event/2024/quests/15)||
 |[16](https://everybody.codes/event/2024/quests/16)||
