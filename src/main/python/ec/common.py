@@ -68,6 +68,13 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
         def int_value(self) -> int:
             return int(self._value_)
 
+        @classmethod
+        def from_str(cls, part: str) -> SolutionBase.Part:
+            for v in SolutionBase.Part:
+                if v._value_ == part:
+                    return v
+            raise ValueError
+
     class PartExecution(NamedTuple):
         part: SolutionBase.Part
         answer: Any = None
@@ -224,6 +231,47 @@ class Direction(Enum):
         }
 
 
+@unique
+class Direction3D(Enum):
+    x: int
+    y: int
+    z: int
+    letter: str
+
+    def __new__(cls, x: int, y: int, z: int, letter: str) -> Direction3D:
+        obj = object.__new__(cls)
+        obj.x = x
+        obj.y = y
+        obj.z = z
+        obj.letter = letter
+        return obj
+
+    UP = (0, 1, 0, "U")
+    RIGHT = (1, 0, 0, "R")
+    DOWN = (0, -1, 0, "D")
+    LEFT = (-1, 0, 0, "L")
+    FORWARD = (0, 0, -1, "F")
+    BACK = (0, 0, 1, "B")
+
+    @classmethod
+    def from_str(cls, s: str) -> Direction3D:
+        for v in Direction3D:
+            if v.letter is not None and v.letter == s:
+                return v
+        raise ValueError
+
+    @classmethod
+    def capitals(cls) -> set[Direction3D]:
+        return {
+            Direction3D.UP,
+            Direction3D.RIGHT,
+            Direction3D.DOWN,
+            Direction3D.LEFT,
+            Direction3D.FORWARD,
+            Direction3D.BACK,
+        }
+
+
 class Cell(NamedTuple):
     row: int
     col: int
@@ -241,3 +289,14 @@ class Position(NamedTuple):
 
     def at(self, direction: Direction) -> Position:
         return Position(self.x + direction.x, self.y + direction.y)
+
+
+class Position3D(NamedTuple):
+    x: int
+    y: int
+    z: int
+
+    def at(self, direction: Direction3D) -> Position3D:
+        return Position3D(
+            self.x + direction.x, self.y + direction.y, self.z + direction.z
+        )
