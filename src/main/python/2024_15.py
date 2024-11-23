@@ -12,6 +12,7 @@ from ec.common import Direction
 from ec.common import InputData
 from ec.common import SolutionBase
 from ec.common import ec_samples
+from ec.common import log
 from ec.graph import bfs
 
 Output1 = int
@@ -63,7 +64,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         )
         return 2 * dist
 
-    def part_2(self, input: InputData) -> Output2:
+    def solve(self, input: tuple[str, ...], start: Cell) -> int:
         h = len(input)
         w = len(input[0])
         H = list(
@@ -74,6 +75,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                 if input[r][c].isalpha()
             }
         )
+        log(H)
 
         def adjacent(c: Cell) -> Iterator[Cell]:
             for d in Direction.capitals():
@@ -87,7 +89,6 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                 ):
                     yield n
 
-        start = Cell(0, w // 2)
         q: deque[tuple[int, Cell, str]] = deque()
         q.append((0, start, "0" * len(H)))
         seen: set[tuple[Cell, str]] = set()
@@ -111,8 +112,35 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                 q.append((distance + 1, n, n_herbs))
         raise RuntimeError("unsolvable")
 
+    def part_2(self, input: InputData) -> Output2:
+        w = len(input[0])
+        start = Cell(0, w // 2)
+        return self.solve(input, start)
+
     def part_3(self, input: InputData) -> Output3:
-        return 0
+        w = len(input[0])
+        start = Cell(0, w // 2)
+        ans = 0
+        # 1
+        grid = tuple(line[: w // 3] for line in input)  # noqa E203
+        start = Cell(len(grid) - 2, len(grid[0]) - 1)
+        ans += self.solve(grid, start) + 1
+        # 3
+        grid = tuple(line[2 * (w // 3) :] for line in input)  # noqa E203
+        start = Cell(len(grid) - 2, 0)
+        ans += self.solve(grid, start) + 1
+        # 2
+        lines = [
+            line[w // 3 : 2 * (w // 3)] for line in input[:-2]  # noqa E203
+        ]
+        lines.append(
+            input[-2][w // 3 : 2 * (w // 3)].replace("K", "L", 1)  # noqa E203
+        )
+        lines.append(input[-1][w // 3 : 2 * (w // 3)])  # noqa E203
+        grid = tuple(lines)
+        start = Cell(0, len(grid[0]) // 2)
+        ans += self.solve(grid, start) + 2 + 4
+        return ans
 
     @ec_samples(
         (
