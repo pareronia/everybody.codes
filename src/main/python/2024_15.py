@@ -3,6 +3,7 @@
 # everybody.codes 2024 Quest 15
 #
 
+import multiprocessing
 import sys
 from collections.abc import Iterator
 from functools import reduce
@@ -83,31 +84,38 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
 
     def part_3(self, input: InputData) -> Output3:
         w = len(input[0])
+        ans = multiprocessing.Manager().dict()
 
-        def left() -> int:
+        def left() -> None:
             grid = tuple(line[: w // 3] for line in input)  # noqa E203
             start = (len(grid) - 2, len(grid[0]) - 1)
-            return self.solve(grid, start) + 1
+            ans["left"] = self.solve(grid, start) + 1
 
-        def right() -> int:
+        def right() -> None:
             grid = tuple(line[2 * (w // 3) :] for line in input)  # noqa E203
             start = (len(grid) - 2, 0)
-            return self.solve(grid, start) + 1
+            ans["right"] = self.solve(grid, start) + 1
 
-        def middle() -> int:
+        def middle() -> None:
             lines = [
                 line[w // 3 : 2 * (w // 3)] for line in input[:-2]  # noqa E203
             ]
-            lines.append(
-                input[-2][w // 3 : 2 * (w // 3)].replace(  # noqa E203
-                    "K", "L", 1
-                )
-            )
+            line = input[-2][w // 3 : 2 * (w // 3)]  # noqa E203
+            lines.append(line.replace("K", "L", 1))
             lines.append(input[-1][w // 3 : 2 * (w // 3)])  # noqa E203
             grid = tuple(lines)
-            return self.solve(grid, start=(0, len(grid[0]) // 2)) + 2 + 4
+            ans["middle"] = (
+                self.solve(grid, start=(0, len(grid[0]) // 2)) + 2 + 4
+            )
 
-        return left() + right() + middle()
+        jobs = []
+        for worker in [middle, left, right]:
+            p = multiprocessing.Process(target=worker)
+            jobs.append(p)
+            p.start()
+        for p in jobs:
+            p.join()
+        return sum(ans.values())
 
     @ec_samples(
         (
