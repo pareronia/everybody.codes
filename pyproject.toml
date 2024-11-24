@@ -1,3 +1,6 @@
+[tool.poetry.dependencies]
+python = "^3.13"
+
 [tool.vulture]
 exclude = [".venv"]
 min_confidence = 80
