@@ -1,9 +1,16 @@
+from __future__ import annotations
+
 import http.client
+import json
 import logging
 import os
 import sys
+from enum import Enum
+from enum import auto
+from enum import unique
 from typing import Any
 from typing import Callable
+from typing import NamedTuple
 from typing import ReadOnly
 from typing import TypedDict
 
@@ -11,8 +18,12 @@ import requests
 from cryptography.hazmat.primitives.ciphers import Cipher
 from cryptography.hazmat.primitives.ciphers import algorithms
 from cryptography.hazmat.primitives.ciphers import modes
+from termcolor import colored
 
-from . import is_online
+if __name__ == "__main__":
+    from __init__ import is_online  # type:ignore
+else:
+    from . import is_online
 
 
 def check_online[**P, T](func: Callable[P, T]) -> Callable[P, T]:
@@ -25,8 +36,71 @@ def check_online[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     return inner
 
 
+def check_http_response[
+    **P, T
+](func: Callable[P, requests.Response]) -> Callable[P, API.Response]:
+    def inner(*args: P.args, **kwargs: P.kwargs) -> API.Response:
+        response = func(*args, **kwargs)
+        logger.debug((response.status_code, response.reason, response.text))
+        response_type = API.ResponseType.from_http_status_code(
+            response.status_code
+        )
+        if response_type == API.ResponseType.OK:
+            return API.Response(API.ResponseType.OK, "OK", response)
+        else:
+            raise RuntimeError(response_type)
+
+    return inner
+
+
+class SubmitResponse(TypedDict, total=False):
+    correct: ReadOnly[bool]
+    lengthCorrect: ReadOnly[bool]
+    firstCorrect: ReadOnly[bool]
+    time: ReadOnly[int]
+    localTime: ReadOnly[int]
+    globalTime: ReadOnly[int]
+    globalPlace: ReadOnly[int]
+    globalScore: ReadOnly[int]
+    error: RuntimeError
+
+
 class API:
     """See: https://old.reddit.com/r/everybodycodes/wiki/index"""
+
+    @unique
+    class ResponseType(Enum):
+        OK = auto()
+        EMPTY = auto()
+        BAD_TOKEN = auto()
+        ALREADY_SUBMITTED = auto()
+        NOT_OPENED = auto()
+        LOCKED_OUT = auto()
+        BAD_QUEST = auto()
+        UNCATEGORIZED_ERROR = auto()
+
+        @classmethod
+        def from_http_status_code(_, code: int) -> API.ResponseType:
+            match code:
+                case 200:
+                    return API.ResponseType.OK
+                case 409:
+                    return API.ResponseType.ALREADY_SUBMITTED
+                case 412:
+                    return API.ResponseType.NOT_OPENED
+                case 418:
+                    return API.ResponseType.BAD_TOKEN
+                case 423:
+                    return API.ResponseType.LOCKED_OUT
+                case 425:
+                    return API.ResponseType.BAD_QUEST
+                case _:
+                    return API.ResponseType.UNCATEGORIZED_ERROR
+
+    class Response(NamedTuple):
+        type: API.ResponseType
+        message: str
+        response: requests.Response | None = None
 
     class QuestData(TypedDict, total=False):
         key1: ReadOnly[str]
@@ -49,22 +123,34 @@ class API:
         }
         self.seed: str | None = None
 
+    @check_http_response
     def do_get(self, url: str) -> requests.Response:
         return requests.get(url, headers=self.headers, timeout=10)
 
+    @check_http_response
+    def do_post(self, url: str, json: dict[str, str]) -> requests.Response:
+        return requests.post(url, headers=self.headers, timeout=10, json=json)
+
     @check_online
     def get_seed(self) -> str:
-        if self.seed is None:
-            response = self.do_get(f"{self.API_URL}/user/me")
-            logger.debug(response.json())
-            self.seed = str(response.json()["seed"])
+        if self.seed is not None:
+            return self.seed
+        response = self.do_get(f"{self.API_URL}/user/me")
+        response_: requests.Response = (
+            response.response  # type:ignore[assignment]
+        )
+        logger.debug(response_.json())
+        self.seed = str(response_.json()["seed"])
         return self.seed
 
     @check_online
     def get_quest_data(self, year: int, day: int) -> QuestData:
         response = self.do_get(f"{self.API_URL}/event/{year}/quest/{day}")
-        logger.debug(response.text)
-        quest_data: API.QuestData = response.json()
+        response_: requests.Response = (
+            response.response  # type:ignore[assignment]
+        )
+        logger.debug(response_.text)
+        quest_data: API.QuestData = response_.json()
         return quest_data
 
     @check_online
@@ -88,7 +174,10 @@ class API:
         response = self.do_get(
             f"{self.ASSET_URL}/{year}/{day}/description.json"
         )
-        return self.decrypt_text(response.json()["title"], quest_data["key1"])
+        response_: requests.Response = (
+            response.response  # type:ignore[assignment]
+        )
+        return self.decrypt_text(response_.json()["title"], quest_data["key1"])
 
     @check_online
     def get_input(self, year: int, day: int, part: int) -> str | None:
@@ -108,8 +197,35 @@ class API:
         response = self.do_get(
             f"{self.ASSET_URL}/{year}/{day}/input/{seed}.json"
         )
-        logger.debug(response.text)
-        return self.decrypt_text(response.json()[str(part)], key)
+        response_: requests.Response = (
+            response.response  # type:ignore[assignment]
+        )
+        logger.debug(response_.text)
+        return self.decrypt_text(response_.json()[str(part)], key)
+
+    @check_online
+    def submit_answer(
+        self, year: int, day: int, part: int, answer: Any
+    ) -> SubmitResponse:
+        submit_response: SubmitResponse
+        if answer is None or len(str(answer).strip()) == 0:
+            submit_response = json.loads("{}")
+            submit_response["error"] = RuntimeError(API.ResponseType.EMPTY)
+            return submit_response
+        try:
+            url = f"{self.API_URL}/event/{year}/quest/{day}/part/{part}/answer"
+            payload = {"answer": str(answer)}
+            response = self.do_post(url, payload)
+        except RuntimeError as error:
+            submit_response = json.loads("{}")
+            submit_response["error"] = error
+        else:
+            response_: requests.Response = (
+                response.response  # type:ignore[assignment]
+            )
+            submit_response = response_.json()
+        finally:
+            return submit_response
 
     def decrypt_text(self, cipher_text: str, key_string: str) -> str:
         key = key_string[:20] + "~" + key_string[21:]
@@ -123,6 +239,78 @@ class API:
         )
         padding_bytes = decrypted[-1]
         return str(decrypted[:-padding_bytes].decode("utf-8"))
+
+
+class SubmitResponseFormatter:
+    @classmethod
+    def box(cls, lines: list[str], color: Any) -> list[str]:
+        width = max(len(line) for line in lines) + 4
+        box = list[str]()
+        box.append(
+            colored(
+                chr(0x2554) + chr(0x2550) * (width - 2) + chr(0x2557), color
+            )
+        )
+        for line in lines:
+            box.append(
+                (
+                    colored(chr(0x2551), color)
+                    + " "
+                    + line.ljust(width - 4, " ")
+                    + " "
+                    + colored(chr(0x2551), color)
+                )
+            )
+        box.append(
+            colored(
+                chr(0x255A) + chr(0x2550) * (width - 2) + chr(0x255D), color
+            )
+        )
+        return box
+
+    @classmethod
+    def format(cls, response: SubmitResponse) -> list[str]:
+        if response is None:
+            return []
+        if "error" in response:
+            messages = {
+                API.ResponseType.EMPTY: "Tried to submit empty answer.",
+                API.ResponseType.ALREADY_SUBMITTED: "Already submitted.",
+                API.ResponseType.NOT_OPENED: "Quest/part not opened yet.",  # noqa E501
+                API.ResponseType.BAD_TOKEN: "Missing/wrong/expired token",
+                API.ResponseType.LOCKED_OUT: "Too soon / Submitted in lock out period.",  # noqa E501
+                API.ResponseType.BAD_QUEST: "Quest/part does not exist.",  # noqa E501
+                API.ResponseType.UNCATEGORIZED_ERROR: "Uncategorized error.",
+            }
+            code = response["error"].args[0]
+            return cls.box(
+                [
+                    "What the Quack?",
+                    "",
+                    f"{messages[code]}",
+                ],
+                "yellow",
+            )
+        if response["correct"]:
+            return cls.box(
+                [
+                    "Quack yeah!," "",
+                    "",
+                    f"Place: {response["globalPlace"]}, "
+                    + f"Score: {response["globalScore"]}",
+                ],
+                "green",
+            )
+        else:
+            return cls.box(
+                [
+                    "Quacked up!," "",
+                    "",
+                    f"Correct length: {response["lengthCorrect"]}",
+                    f"First letter correct: {response["firstCorrect"]}",
+                ],
+                "red",
+            )
 
 
 http.client.HTTPConnection.debuglevel = 0
@@ -140,8 +328,15 @@ logger.setLevel(os.getenv("LOGLEVEL", "INFO"))
 if __name__ == "__main__":
 
     api = API(sys.argv[1])
-    print(f"Title 1: {api.get_title(2024, 1)}")
-    print(f"Title 10: {api.get_title(2024, 10)}")
-    print(f"Input 5/1: {api.get_input(2024, 5, 1)}")
-    print(f"Input 9/1: {api.get_input(2024, 9, 1)}")
-    print(f"Input 10/1: {api.get_input(2024, 10, 1)}")
+    # print(f"Title 1: {api.get_title(2024, 1)}")
+    # print(f"Title 10: {api.get_title(2024, 10)}")
+    # print(f"Input 5/1: {api.get_input(2024, 5, 1)}")
+    # print(f"Input 9/1: {api.get_input(2024, 9, 1)}")
+    # print(f"Input 10/1: {api.get_input(2024, 10, 1)}")
+    response = api.submit_answer(2024, 11, 1, "")
+    for line in SubmitResponseFormatter.format(response):
+        print(line)
+    # try:
+    #     api.submit_answer(2023, 1, 1, "123")
+    # except RuntimeError as e:
+    #     print(e)

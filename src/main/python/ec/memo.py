@@ -2,7 +2,7 @@ import json
 import os
 import sys
 
-from ec.api import API
+from .api import API
 
 from . import EVERYBODY_CODES_DIR
 from . import EVERYBODY_CODES_TOKEN

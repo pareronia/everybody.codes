@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import os
 import time
 from abc import ABC
@@ -14,10 +15,15 @@ from typing import NamedTuple
 from typing import TypeVar
 from typing import cast
 
-import ec.memo as memo
 from prettyprinter import cpprint
 
 from . import is_released
+from .api import API
+from .api import SubmitResponseFormatter
+from .memo import get_answer as memo_get_answer
+from .memo import get_input as memo_get_input
+from .memo import get_title as memo_get_title
+from .memo import get_token as memo_get_token
 
 
 def clog(c: Callable[[], object]) -> None:
@@ -39,13 +45,13 @@ class Quest:
         return is_released(self.year, self.day)
 
     def get_title(self) -> str | None:
-        return memo.get_title(self.year, self.day)
+        return memo_get_title(self.year, self.day)
 
     def get_input(self, part: int) -> tuple[str, ...] | None:
-        return memo.get_input(self.year, self.day, part)
+        return memo_get_input(self.year, self.day, part)
 
     def get_answer(self, part: int) -> str | None:
-        return memo.get_answer(self.year, self.day, part)
+        return memo_get_answer(self.year, self.day, part)
 
 
 InputData = tuple[str, ...]
@@ -95,6 +101,7 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
 
     def __init__(self, year: int, day: int):
         self.quest = Quest(year, day)
+        self.callables = {"1": self.part_1, "2": self.part_2, "3": self.part_3}
 
     @abstractmethod
     def samples(self) -> None:
@@ -112,28 +119,51 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
     def part_3(self, input: InputData) -> OUTPUT3:
         pass
 
-    def run(self, args: list[str]) -> None:  # noqa E103
+    def run(self, main_args: list[str]) -> None:  # noqa E103
         def execute_part(
             part: SolutionBase.Part, f: Callable[[InputData], Any]
         ) -> SolutionBase.PartExecution:
             input = self.quest.get_input(part.int_value())
             if input is None:
-                return SolutionBase.PartExecution(part, no_input=True)
-            start = time.time()
-            answer = f(input)
-            return SolutionBase.PartExecution(
-                part, answer, int((time.time() - start) * 1e9)
-            )
+                result = SolutionBase.PartExecution(part, no_input=True)
+            else:
+                start = time.time()
+                answer = f(input)
+                result = SolutionBase.PartExecution(
+                    part, answer, int((time.time() - start) * 1e9)
+                )
+            print(result)
+            return result
 
-        def check_part(part: SolutionBase.Part, result: Any) -> str:
-            expected = self.quest.get_answer(part.int_value())
+        def check_answer(exec_part: SolutionBase.PartExecution) -> str:
+            expected = self.quest.get_answer(exec_part.part.int_value())
+            answer = exec_part.answer
             if (
                 expected is not None
-                and result is not None
-                and expected != str(result)
+                and answer is not None
+                and expected != str(answer)
             ):
-                return f"Part {part}: Expected: '{expected}', got: '{result}'"
+                return (
+                    f"Part {exec_part.part}:"
+                    + f" Expected: '{expected}', got: '{answer}'"
+                )
             return ""
+
+        def submit_answer(exec_part: SolutionBase.PartExecution) -> None:
+            part = exec_part.part.int_value()
+            if self.quest.get_answer(part) is not None:
+                print()
+                print(f"*** Part {part}: already submitted ***")
+                return
+            token = memo_get_token()
+            response = API(token).submit_answer(
+                self.quest.year,
+                self.quest.day,
+                part,
+                exec_part.answer,
+            )
+            for line in SubmitResponseFormatter.format(response):
+                print(line)
 
         header = f"everybody.codes {self.quest.year} Quest {self.quest.day}"
         if not self.quest.is_released():
@@ -145,26 +175,27 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
         print()
         print(header + ("" if title is None else f": {title}"))
         print()
+
         if __debug__:
             self.samples()
-        exec_part1 = execute_part(
-            self.Part.PART_1, lambda input: self.part_1(input)
-        )
-        print(exec_part1)
-        exec_part2 = execute_part(
-            self.Part.PART_2, lambda input: self.part_2(input)
-        )
-        print(exec_part2)
-        exec_part3 = execute_part(
-            self.Part.PART_3, lambda input: self.part_3(input)
-        )
-        print(exec_part3)
-        fail_1 = check_part(self.Part.PART_1, exec_part1.answer)
-        fail_2 = check_part(self.Part.PART_2, exec_part2.answer)
-        fail_3 = check_part(self.Part.PART_3, exec_part3.answer)
-        message = os.linesep.join([fail_1, fail_2, fail_3])
+        exec_parts = [
+            execute_part(self.Part.from_str(part), self.callables[part])
+            for part in ["1", "2", "3"]
+        ]
+        fails = [check_answer(exec_part) for exec_part in exec_parts]
+        message = os.linesep.join(fails)
         if message.strip() != "":
             raise ValueError(os.linesep + message)
+        if len(main_args) <= 1:
+            return
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "-s", "--submit", action="store_true", dest="submit"
+        )
+        args = parser.parse_args(main_args[1:])
+        if args.submit:
+            for part in range(3):
+                submit_answer(exec_parts[part])
 
 
 F = TypeVar("F", bound=Callable[..., Any])
