@@ -1,5 +1,7 @@
 [everybody.codes](https://everybody.codes)
 
+<img src="https://everybody-codes.b-cdn.net/assets/img/logo.png" alt="Everybody Codes logo" style="height: 120px"/>
+
 ## 2024
 
 <!-- @BEGIN:Quests@ -->
