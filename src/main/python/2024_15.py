@@ -108,13 +108,18 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                 self.solve(grid, start=(0, len(grid[0]) // 2)) + 2 + 4
             )
 
-        jobs = []
-        for worker in [middle, left, right]:
-            p = multiprocessing.Process(target=worker)
-            jobs.append(p)
-            p.start()
-        for p in jobs:
-            p.join()
+        if sys.platform.startswith("win"):
+            left()
+            middle()
+            right()
+        else:
+            jobs = []
+            for worker in [middle, left, right]:
+                p = multiprocessing.Process(target=worker)
+                jobs.append(p)
+                p.start()
+            for p in jobs:
+                p.join()
         return sum(ans.values())
 
     @ec_samples(
