@@ -6,7 +6,6 @@
 import multiprocessing
 import sys
 from collections.abc import Iterator
-from functools import reduce
 
 from ec.common import Direction
 from ec.common import InputData
@@ -42,17 +41,20 @@ TEST2 = """\
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def solve(self, input: tuple[str, ...], start: tuple[int, int]) -> int:
-        h = len(input)
-        w = len(input[0])
-        complete = reduce(
-            lambda agg, h: agg | 1 << (ord(h) - ord("A")),
-            filter(
-                lambda v: v.isalpha(),
-                (input[r][c] for r in range(h) for c in range(w)),
-            ),
-            0,
-        )
+    def solve(
+        self,
+        input: tuple[str, ...],
+        offset: int,
+        width: int,
+        start: tuple[int, int],
+    ) -> int:
+        height = len(input)
+        complete = 0
+        for r in range(height):
+            for c in range(width):
+                v = input[r][offset + c]
+                if v.isalpha():
+                    complete |= 1 << (ord(v) - ord("A"))
 
         def is_end(node: tuple[int, int, int]) -> bool:
             r, c, herbs = node
@@ -64,8 +66,8 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             r, c, herbs = node
             for d in Direction.capitals():
                 n_r, n_c = r + d.y, c + d.x
-                if 0 <= n_r < h and 0 <= n_c < w:
-                    v = input[n_r][n_c]
+                if 0 <= n_r < height and 0 <= n_c < width:
+                    v = input[n_r][offset + n_c]
                     if v in {"#", "~"}:
                         continue
                     n_herbs = herbs
@@ -77,36 +79,36 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         return distance
 
     def part_1(self, input: InputData) -> Output1:
-        return self.solve(input, start=(0, len(input[0]) // 2))
+        width = len(input[0])
+        return self.solve(input, 0, width, start=(0, width // 2))
 
     def part_2(self, input: InputData) -> Output2:
-        return self.solve(input, start=(0, len(input[0]) // 2))
+        width = len(input[0])
+        return self.solve(input, 0, width, start=(0, width // 2))
 
     def part_3(self, input: InputData) -> Output3:
-        w = len(input[0])
+        width = len(input[0]) // 3
+        height = len(input)
+        input = tuple(
+            line.replace("K", "X", 1) if i == height - 2 else line
+            for i, line in enumerate(input)
+        )
         ans = multiprocessing.Manager().dict()
 
         def left() -> None:
-            grid = tuple(line[: w // 3] for line in input)  # noqa E203
-            start = (len(grid) - 2, len(grid[0]) - 1)
-            ans["left"] = self.solve(grid, start) + 1
+            offset = 0
+            start = (height - 2, width - 1)
+            ans["left"] = self.solve(input, offset, width, start) + 1
 
         def right() -> None:
-            grid = tuple(line[2 * (w // 3) :] for line in input)  # noqa E203
-            start = (len(grid) - 2, 0)
-            ans["right"] = self.solve(grid, start) + 1
+            offset = 2 * width
+            start = (height - 2, 0)
+            ans["right"] = self.solve(input, offset, width, start) + 1
 
         def middle() -> None:
-            lines = [
-                line[w // 3 : 2 * (w // 3)] for line in input[:-2]  # noqa E203
-            ]
-            line = input[-2][w // 3 : 2 * (w // 3)]  # noqa E203
-            lines.append(line.replace("K", "L", 1))
-            lines.append(input[-1][w // 3 : 2 * (w // 3)])  # noqa E203
-            grid = tuple(lines)
-            ans["middle"] = (
-                self.solve(grid, start=(0, len(grid[0]) // 2)) + 2 + 4
-            )
+            offset = width
+            start = (0, width // 2)
+            ans["middle"] = self.solve(input, offset, width, start) + 6
 
         if sys.platform.startswith("win"):
             left()
@@ -114,7 +116,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             right()
         else:
             jobs = []
-            for worker in [middle, left, right]:
+            for worker in {left, middle, right}:
                 p = multiprocessing.Process(target=worker)
                 jobs.append(p)
                 p.start()
