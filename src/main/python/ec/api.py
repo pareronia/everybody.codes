@@ -25,6 +25,8 @@ if __name__ == "__main__":
 else:
     from . import is_online
 
+logger = logging.getLogger(__name__)
+
 
 def check_online[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     def inner(*args: P.args, **kwargs: P.kwargs) -> Any:
@@ -63,6 +65,20 @@ class SubmitResponse(TypedDict, total=False):
     globalPlace: ReadOnly[int]
     globalScore: ReadOnly[int]
     error: RuntimeError
+
+
+class QuestUserStats(TypedDict, total=True):
+    time: ReadOnly[int]
+    localTime: ReadOnly[int]
+    globalPlace: ReadOnly[int]
+    globalScore: ReadOnly[int]
+
+
+class QuestStats(TypedDict, total=True):
+    opened: ReadOnly[int]
+    p1: ReadOnly[int]
+    p2: ReadOnly[int]
+    p3: ReadOnly[int]
 
 
 class API:
@@ -227,6 +243,37 @@ class API:
         finally:
             return submit_response
 
+    @check_online
+    def get_user_stats(
+        self, year: int
+    ) -> dict[int, dict[int, QuestUserStats]]:
+        response = self.do_get(f"{self.API_URL}/event/{year}/my")
+        response_: requests.Response = (
+            response.response  # type:ignore[assignment]
+        )
+        user_stats = dict[int, dict[int, QuestUserStats]]()
+        quests = response_.json()["quests"]
+        for quest in quests:
+            quest_stats = dict[int, QuestUserStats]()
+            for part in quests[quest]:
+                stats: QuestUserStats = quests[quest][part]
+                quest_stats[int(part)] = stats
+            user_stats[int(quest)] = quest_stats
+        return user_stats
+
+    @check_online
+    def get_quest_stats(self, year: int) -> dict[int, QuestStats]:
+        response = self.do_get(f"{self.API_URL}/event/{year}/stats/general")
+        response_: requests.Response = (
+            response.response  # type:ignore[assignment]
+        )
+        quest_stats = dict[int, QuestStats]()
+        quests = response_.json()
+        for quest in quests:
+            stats: QuestStats = quests[quest]
+            quest_stats[int(quest)] = stats
+        return quest_stats
+
     def decrypt_text(self, cipher_text: str, key_string: str) -> str:
         key = key_string[:20] + "~" + key_string[21:]
         decryptor = Cipher(
@@ -313,19 +360,15 @@ class SubmitResponseFormatter:
             )
 
 
-http.client.HTTPConnection.debuglevel = 0
-
-logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
-logging.getLogger("urllib3").setLevel(logging.INFO)
-requests_log = logging.getLogger("requests.packages.urllib3")
-requests_log.setLevel(logging.INFO)
-requests_log.propagate = True
-
-logger = logging.getLogger(API.__name__)
-logger.setLevel(os.getenv("LOGLEVEL", "INFO"))
-
 if __name__ == "__main__":
+    http.client.HTTPConnection.debuglevel = 0
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger("urllib3").setLevel(logging.INFO)
+    requests_log = logging.getLogger("requests.packages.urllib3")
+    requests_log.setLevel(logging.INFO)
+    requests_log.propagate = True
+    logger.setLevel(os.getenv("LOGLEVEL", "INFO"))
 
     api = API(sys.argv[1])
     # print(f"Title 1: {api.get_title(2024, 1)}")
@@ -333,10 +376,12 @@ if __name__ == "__main__":
     # print(f"Input 5/1: {api.get_input(2024, 5, 1)}")
     # print(f"Input 9/1: {api.get_input(2024, 9, 1)}")
     # print(f"Input 10/1: {api.get_input(2024, 10, 1)}")
-    response = api.submit_answer(2024, 11, 1, "")
-    for line in SubmitResponseFormatter.format(response):
-        print(line)
+    # response = api.submit_answer(2024, 11, 1, "")
+    # for line in SubmitResponseFormatter.format(response):
+    #     print(line)
     # try:
     #     api.submit_answer(2023, 1, 1, "123")
     # except RuntimeError as e:
     #     print(e)
+    # print(f"{api.get_user_stats(2024)}")
+    print(api.get_quest_stats(2024))
