@@ -9,7 +9,7 @@ from collections import defaultdict
 from ec.common import InputData
 from ec.common import SolutionBase
 from ec.common import ec_samples
-from ec.graph import bfs
+from ec.graph import bfs_path
 
 Output1 = str
 Output2 = str
@@ -47,7 +47,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         c = defaultdict[int, list[list[str]]](list)
         for n in d:
             if n.startswith(FLOWER):
-                _, path = bfs(
+                _, path = bfs_path(
                     n,
                     lambda x: x == ROOT,
                     lambda x: (_ for _ in d[x]),

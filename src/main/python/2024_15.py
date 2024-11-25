@@ -75,8 +75,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                         n_herbs |= 1 << (ord(v) - ord("A"))
                     yield (n_r, n_c, n_herbs)
 
-        distance, _ = bfs((*start, 0), is_end, adjacent)
-        return distance
+        return bfs((*start, 0), is_end, adjacent)
 
     def part_1(self, input: InputData) -> Output1:
         width = len(input[0])

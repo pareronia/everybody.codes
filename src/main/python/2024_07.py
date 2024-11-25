@@ -10,7 +10,7 @@ from collections import defaultdict
 from ec.common import Cell
 from ec.common import InputData
 from ec.common import SolutionBase
-from ec.graph import bfs
+from ec.graph import bfs_path
 
 Output1 = str
 Output2 = str
@@ -50,7 +50,7 @@ TRACK3 = [
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
     def get_track(self, input: list[str]) -> str:
-        _, path = bfs(
+        _, path = bfs_path(
             Cell(0, 1),
             lambda cell: cell.row == 1 and cell.col == 0,
             lambda cell: (
