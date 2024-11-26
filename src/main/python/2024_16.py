@@ -6,8 +6,7 @@
 import math
 import sys
 from collections import Counter
-from functools import reduce
-from typing import Callable
+from functools import cache
 
 from ec.common import InputData
 from ec.common import SolutionBase
@@ -38,8 +37,8 @@ TEST2 = """\
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def parse(self, input: InputData) -> tuple[list[int], list[int]]:
-        steps = list(map(int, input[0].split(",")))
+    def parse(self, input: InputData) -> tuple[tuple[int, ...], list[int]]:
+        steps = tuple(map(int, input[0].split(",")))
         sizes = list[int]()
         for i in range(len(steps)):
             j = 0
@@ -48,75 +47,60 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             sizes.append(j)
         return steps, sizes
 
-    def right_lever(
-        self,
-        input: InputData,
-        new_pos: list[int],
-        sizes: list[int],
-        steps: list[int],
-        pulls: int = 1,
-    ) -> tuple[str, int, list[int]]:
-        ans = 0
-        for _ in range(pulls):
-            new_pos = [
-                (new_pos[i] + p) % sizes[i] for i, p in enumerate(steps)
-            ]
-            s = " ".join(
-                input[2 + p][i * 4 : i * 4 + 3]  # noqa E203
-                for i, p in enumerate(new_pos)
-            )
-            ctr = Counter(ch for i, ch in enumerate(s) if i % 2 != 1)
-            score = sum(v - 2 for k, v in ctr.items() if v >= 3)
-            ans += score
-        return s, ans, new_pos
+    def positions(
+        self, sizes: list[int], steps: tuple[int, ...], amount: int
+    ) -> tuple[int, ...]:
+        return tuple((amount * s) % sizes[i] for i, s in enumerate(steps))
+
+    def sequence(self, input: InputData, pos: tuple[int, ...]) -> str:
+        return " ".join(
+            input[2 + p][i * 4 : i * 4 + 3]  # noqa E203
+            for i, p in enumerate(pos)
+        )
+
+    def score(self, sequence: str) -> int:
+        ctr = Counter(ch for i, ch in enumerate(sequence) if i % 2 != 1)
+        return sum(v - 2 for v in ctr.values() if v >= 3)
 
     def part_1(self, input: InputData) -> Output1:
-        steps, sizes = self.parse(input)
-        ans, _, _ = self.right_lever(
-            input, [0] * len(steps), sizes, steps, 100
-        )
-        return ans
+        steps, sizes, pulls = *self.parse(input), 100
+        return self.sequence(input, self.positions(sizes, steps, pulls))
 
     def part_2(self, input: InputData) -> Output2:
-        steps, sizes = self.parse(input)
-        pulls = 202_420_242_024
-        new_pos = [0] * len(steps)
-        lcm = reduce(lambda agg, s: math.lcm(agg, s), sizes, 1)
-        cycles = pulls // lcm
-        rest = pulls % lcm
-        _, ans1, new_pos = self.right_lever(input, new_pos, sizes, steps, lcm)
-        _, ans2, new_pos = self.right_lever(input, new_pos, sizes, steps, rest)
-        return ans1 * cycles + ans2
+        steps, sizes, pulls = *self.parse(input), 202_420_242_024
+        lcm = math.lcm(*sizes)
+        cycles, rest = divmod(pulls, lcm)
+        score_lcm = 0
+        for i in range(1, lcm + 1):
+            sequence = self.sequence(input, self.positions(sizes, steps, i))
+            score_lcm += self.score(sequence)
+            if i == rest:
+                score_rest = score_lcm
+        return score_lcm * cycles + score_rest
 
     def part_3(self, input: InputData) -> Output3:
-        steps, sizes = self.parse(input)
-        memo = {
-            min: dict[tuple[tuple[int, ...], int], int](),
-            max: dict[tuple[tuple[int, ...], int], int](),
-        }
+        steps, sizes, pulls = *self.parse(input), 256
 
-        def score(
-            pos: list[int], step: int, f: Callable  # type:ignore
-        ) -> int:
-            key = tuple(p for p in pos)
-            if (key, step) in memo[f]:
-                return memo[f][(key, step)]
-            _, ss_none, pos_none = self.right_lever(input, pos, sizes, steps)
-            newpos_up = [(p + 1) % sizes[i] for i, p in enumerate(pos)]
-            _, ss_up, pos_up = self.right_lever(input, newpos_up, sizes, steps)
-            newpos_dn = [(p - 1) % sizes[i] for i, p in enumerate(pos)]
-            _, ss_dn, pos_dn = self.right_lever(input, newpos_dn, sizes, steps)
-            if step > 1:
-                ss_none += score(pos_none, step - 1, f)
-                ss_up += score(pos_up, step - 1, f)
-                ss_dn += score(pos_dn, step - 1, f)
-            ans = f(ss_none, ss_up, ss_dn)
-            memo[f][(key, step)] = ans
-            return ans  # type:ignore
+        @cache
+        def scores(left_lever: int, pull: int) -> tuple[int, int]:
+            if pull == 0:
+                min_score, max_score = 0, 0
+            else:
+                new_pos = tuple(
+                    (step * pull + left_lever) % sizes[i]
+                    for i, step in enumerate(steps)
+                )
+                score = self.score(self.sequence(input, new_pos))
+                min_score, max_score = score, score
+            if pulls - pull > 0:
+                min_max = [
+                    scores(left_lever + ll, pull + 1) for ll in (-1, 0, 1)
+                ]
+                min_score += min(m for m, _ in min_max)
+                max_score += max(m for _, m in min_max)
+            return min_score, max_score
 
-        pulls = 256
-        ans_min = score([0] * len(steps), pulls, min)
-        ans_max = score([0] * len(steps), pulls, max)
+        ans_min, ans_max = scores(0, 0)
         return f"{ans_max} {ans_min}"
 
     @ec_samples(
