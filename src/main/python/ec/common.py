@@ -16,6 +16,7 @@ from typing import TypeVar
 from typing import cast
 
 from prettyprinter import cpprint
+from termcolor import colored
 
 from . import is_released
 from .api import API
@@ -94,9 +95,10 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
         def __repr__(self) -> str:
             if self.no_input:
                 return f"Part {self.part}: == NO INPUT FOUND =="
+            answer = colored(self.answer, "white", attrs=["bold"])
             return (
                 f"Part {self.part}:"
-                f" {self.answer}, took {self.duration_as_ms:.3f} ms"
+                f" {answer}, took {self.duration_as_ms:.3f} ms"
             )
 
     def __init__(self, year: int, day: int):
@@ -165,7 +167,10 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
             for line in SubmitResponseFormatter.format(response):
                 print(line)
 
-        header = f"everybody.codes {self.quest.year} Quest {self.quest.day}"
+        header = colored(
+            f"everybody.codes {self.quest.year} Quest {self.quest.day}",
+            "yellow",
+        )
         if not self.quest.is_released():
             print()
             print(f"{header}: == Quest not available yet ==")
