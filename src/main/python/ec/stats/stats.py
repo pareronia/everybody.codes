@@ -2,6 +2,9 @@ from datetime import timedelta
 from typing import NamedTuple
 
 from ..api import API
+from ..calendar import contest_started
+from ..calendar import now
+from ..calendar import valid_year
 from ..memo import get_title as memo_get_title
 from ..memo import get_token as memo_get_token
 
@@ -72,8 +75,20 @@ def get_quest_stats(year: int) -> dict[int, QuestStats]:
 
 
 def main(args: list[str]) -> None:
-    if len(args) == 1:
-        print_year(int(args[0]))
+    if len(args) == 0:
+        year = now().year
+        if contest_started(year):
+            print_year(year)
+        else:
+            raise ValueError("No year provided")
+    elif len(args) == 1:
+        year = int(args[0])
+        if valid_year(year):
+            print_year(year)
+        else:
+            raise ValueError("Invalid year provided")
+    else:
+        raise ValueError("Too many arguments")
 
 
 def print_year(year: int) -> None:

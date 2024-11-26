@@ -18,9 +18,9 @@ from typing import cast
 from prettyprinter import cpprint
 from termcolor import colored
 
-from . import is_released
 from .api import API
 from .api import SubmitResponseFormatter
+from .calendar import is_released
 from .memo import get_answer as memo_get_answer
 from .memo import get_input as memo_get_input
 from .memo import get_title as memo_get_title
