@@ -4,6 +4,7 @@
 #
 
 import sys
+from collections import defaultdict
 
 from ec.common import Direction
 from ec.common import InputData
@@ -29,15 +30,21 @@ TEST2 = """\
 .A......T.H..
 =============
 """
+TEST3 = """\
+6 5
+6 7
+10 5
+5 5
+"""
 
-CATAPULTS = {(Position(1, 1), 1), (Position(1, 2), 2), (Position(1, 3), 3)}
+CATAPULTS = {(Position(0, 0), 1), (Position(0, 1), 2), (Position(0, 2), 3)}
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
 
     def parse(self, input: InputData) -> dict[Position, int]:
         return {
-            Position(x, len(input) - y - 1): 1 if input[y][x] == "T" else 2
+            Position(x - 1, len(input) - y - 2): 1 if input[y][x] == "T" else 2
             for x in range(len(input[0]))
             for y in range(len(input))
             if input[y][x] in {"H", "T"}
@@ -55,7 +62,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
 
         ans = 0
         for catapult in CATAPULTS:
-            for power in range(max_power):
+            for power in range(1, max_power):
                 pos = catapult[0]
                 for _ in range(power):
                     pos = pos.at(Direction.RIGHT_AND_UP)
@@ -77,13 +84,54 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         return self.at_my_signal_unleash_hell(targets, 40)
 
     def part_3(self, input: InputData) -> Output3:
-        return 0
+        """https://old.reddit.com/r/everybodycodes/comments/1gvap61/2024_q12_solution_spotlight/ly2adkc/"""  # noqa E501
+        M = set[tuple[int, int]]()
+        for line in input:
+            x, y = map(int, line.split())
+            M.add((x, y))
+
+        class Projectile:
+            def __init__(
+                self, pos: tuple[int, int], hor: int, rank: int
+            ) -> None:
+                self.pos = pos
+                self.hor = hor
+                self.rank = rank
+
+        G = [((0, 0), 0, 1), ((0, 1), 0, 2), ((0, 2), 0, 3)]
+        P = list[Projectile]()
+        D = defaultdict[tuple[int, int], int](lambda: sys.maxsize)
+        ans = 0
+        while len(M) > 0:
+            for p in P:
+                if p.hor > 0:
+                    p.hor -= 1
+                    p.pos = (p.pos[0] + 1, p.pos[1])
+                else:
+                    p.pos = (p.pos[0] + 1, p.pos[1] - 1)
+            P = [p for p in P if p.pos[1] >= 0]
+            for i in range(len(G)):
+                pos, power, segment = G[i]
+                g = ((pos[0] + 1, pos[1] + 1), power + 1, segment)
+                G[i] = g
+                P.append(Projectile((g[0][0], g[0][1]), g[1], g[1] * g[2]))
+            for p in P:
+                D[p.pos] = min(D[p.pos], p.rank)
+            MM = set()
+            for m in M:
+                m = (m[0] - 1, m[1] - 1)
+                if m in D:
+                    ans += D[m]
+                else:
+                    MM.add(m)
+            M = MM
+        return ans
 
     @ec_samples(
         (
             ("part_1", TEST1, 13),
             ("part_2", TEST2, 22),
-            ("part_3", TEST1, 0),
+            ("part_3", TEST3, 13),
         )
     )
     def samples(self) -> None:

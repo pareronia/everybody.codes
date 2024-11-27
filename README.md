@@ -18,7 +18,7 @@
 |[9](https://everybody.codes/event/2024/quests/9)|[✓](src/main/python/2024_09.py)|&nbsp;&nbsp;39&nbsp;/&nbsp;&nbsp;215&nbsp;/&nbsp;&nbsp;202|&nbsp;12&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[10](https://everybody.codes/event/2024/quests/10)|[✓](src/main/python/2024_10.py)|&nbsp;&nbsp;45&nbsp;/&nbsp;&nbsp;&nbsp;40&nbsp;/&nbsp;&nbsp;201|&nbsp;&nbsp;6&nbsp;/&nbsp;&nbsp;61&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[11](https://everybody.codes/event/2024/quests/11)|[✓](src/main/python/2024_11.py)|&nbsp;107&nbsp;/&nbsp;&nbsp;&nbsp;58&nbsp;/&nbsp;&nbsp;&nbsp;59|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;43&nbsp;/&nbsp;&nbsp;92|
-|[12](https://everybody.codes/event/2024/quests/12)||||
+|[12](https://everybody.codes/event/2024/quests/12)|[✓](src/main/python/2024_12.py)|&nbsp;110&nbsp;/&nbsp;&nbsp;240&nbsp;/&nbsp;&nbsp;197|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[13](https://everybody.codes/event/2024/quests/13)|[✓](src/main/python/2024_13.py)|&nbsp;&nbsp;29&nbsp;/&nbsp;&nbsp;&nbsp;28&nbsp;/&nbsp;&nbsp;&nbsp;39|&nbsp;22&nbsp;/&nbsp;&nbsp;73&nbsp;/&nbsp;112|
 |[14](https://everybody.codes/event/2024/quests/14)|[✓](src/main/python/2024_14.py)|&nbsp;&nbsp;29&nbsp;/&nbsp;&nbsp;&nbsp;41&nbsp;/&nbsp;&nbsp;&nbsp;36|&nbsp;22&nbsp;/&nbsp;&nbsp;60&nbsp;/&nbsp;115|
 |[15](https://everybody.codes/event/2024/quests/15)|[✓](src/main/python/2024_15.py)|&nbsp;&nbsp;62&nbsp;/&nbsp;&nbsp;124&nbsp;/&nbsp;&nbsp;&nbsp;54|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;97|
