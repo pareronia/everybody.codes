@@ -111,3 +111,23 @@ def dijkstra(
                 parent[n] = node
                 q.put((new_cost, n))
     return cost, best, path
+
+
+def prim(
+    start: T, adjacent: Callable[[T], Iterator[tuple[T, int]]]
+) -> tuple[int, set[T]]:
+    q = PriorityQueue[tuple[int, T]]()
+    q.put((0, start))
+    seen = set[T]()
+    total = 0
+    while not q.empty():
+        distance, node = q.get()
+        if node in seen:
+            continue
+        total += distance
+        seen.add(node)
+        for n, d in adjacent(node):
+            if n in seen:
+                continue
+            q.put((d, n))
+    return total, seen

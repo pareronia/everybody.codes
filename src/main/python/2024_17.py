@@ -5,12 +5,13 @@
 
 import sys
 from math import prod
-from queue import PriorityQueue
+from typing import Iterator
 
 from ec.common import InputData
 from ec.common import Position
 from ec.common import SolutionBase
 from ec.common import ec_samples
+from ec.graph import prim
 
 Output1 = int
 Output2 = int
@@ -35,57 +36,37 @@ TEST2 = """\
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def part_1(self, input: InputData) -> Output1:
-        stars = set[Position]()
-        for y in range(len(input)):
-            for x in range(len(input[0])):
-                if input[y][x] == "*":
-                    stars.add(Position(x, y))
+    def parse(self, input: InputData) -> set[Position]:
+        return {
+            Position(x, y)
+            for y in range(len(input))
+            for x in range(len(input[0]))
+            if input[y][x] == "*"
+        }
 
-        q = PriorityQueue[tuple[int, Position]]()
-        q.put((0, next(_ for _ in stars)))
-        seen = set[Position]()
-        dist = 0
-        while not q.empty():
-            d, s = q.get()
-            if s in seen:
-                continue
-            dist += d
-            seen.add(s)
-            for n in stars:
-                if n in seen:
-                    continue
-                q.put((n.manhattan_distance(s), n))
+    def part_1(self, input: InputData) -> Output1:
+        stars = self.parse(input)
+        dist, seen = prim(
+            next(iter(stars)),
+            lambda s: ((n, n.manhattan_distance(s)) for n in stars),
+        )
         return dist + len(seen)
 
     def part_2(self, input: InputData) -> Output2:
         return self.part_1(input)
 
     def part_3(self, input: InputData) -> Output3:
-        stars = set[Position]()
-        for y in range(len(input)):
-            for x in range(len(input[0])):
-                if input[y][x] == "*":
-                    stars.add(Position(x, y))
+        stars = self.parse(input)
+
+        def adjacent(s: Position) -> Iterator[tuple[Position, int]]:
+            for n in stars:
+                md = n.manhattan_distance(s)
+                if md < 6:
+                    yield (n, md)
 
         constellations = []
         while len(stars) > 0:
-            q = PriorityQueue[tuple[int, Position]]()
-            q.put((0, next(_ for _ in stars)))
-            seen = set[Position]()
-            dist = 0
-            while not q.empty():
-                d, s = q.get()
-                if s in seen:
-                    continue
-                dist += d
-                seen.add(s)
-                for n in stars:
-                    if n in seen:
-                        continue
-                    md = n.manhattan_distance(s)
-                    if md < 6:
-                        q.put((n.manhattan_distance(s), n))
+            dist, seen = prim(next(iter(stars)), adjacent)
             constellations.append(dist + len(seen))
             stars -= seen
         return prod(sorted(constellations)[-3:])
