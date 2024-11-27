@@ -326,6 +326,9 @@ class Position(NamedTuple):
     def at(self, direction: Direction) -> Position:
         return Position(self.x + direction.x, self.y + direction.y)
 
+    def manhattan_distance(self, other: Position) -> int:
+        return abs(self.x - other.x) + abs(self.y - other.y)
+
 
 class Position3D(NamedTuple):
     x: int
