@@ -42,26 +42,20 @@ TEST3 = """\
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def part_1(self, input: InputData) -> Output1:
-        start = Cell(
-            next(iter(r for r in range(len(input)) if input[r][0] == ".")),
-            0,
-        )
-        palms = 0
-        for line in input:
-            for ch in line:
-                if ch == "P":
-                    palms += 1
-        ans = 0
-        f = {start}
-        seen = set()
-        seen.add(start)
+    def flood(
+        self, input: InputData, starts: set[Cell], palms: int
+    ) -> list[int]:
+        h, w = len(input), len(input[0])
+        ans = []
+        frontier = {_ for _ in starts}
+        seen = {_ for _ in starts}
+        t = 0
         while True:
-            ans += 1
-            nf = set()
-            for node in f:
+            t += 1
+            new_frontier = set()
+            for node in frontier:
                 for n in node.get_capital_neighbours():
-                    if n in seen:
+                    if n in seen or not (0 <= n.row < h and 0 <= n.col < w):
                         continue
                     seen.add(n)
                     v = input[n.row][n.col]
@@ -69,101 +63,39 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                         continue
                     if v == "P":
                         palms -= 1
-                    nf.add(n)
+                        ans.append(t)
+                    new_frontier.add(n)
             if palms == 0:
                 break
-            f = nf
+            frontier = new_frontier
         return ans
+
+    def part_1(self, input: InputData) -> Output1:
+        palms = len([ch for line in input for ch in line if ch == "P"])
+        row = next(iter(r for r in range(len(input)) if input[r][0] == "."))
+        return self.flood(input, {Cell(row, 0)}, palms)[-1]
 
     def part_2(self, input: InputData) -> Output2:
-        start_1 = Cell(
-            next(iter(r for r in range(len(input)) if input[r][0] == ".")),
-            0,
-        )
         h, w = len(input), len(input[0])
-        start_2 = Cell(
-            next(iter(r for r in range(len(input)) if input[r][w - 1] == ".")),
-            w - 1,
-        )
-        palms = 0
-        for line in input:
-            for ch in line:
-                if ch == "P":
-                    palms += 1
-        ans = 0
-        f = {start_1, start_2}
-        seen = set()
-        seen.add(start_1)
-        seen.add(start_2)
-        while True:
-            ans += 1
-            nf = set()
-            for node in f:
-                for n in node.get_capital_neighbours():
-                    if n in seen:
-                        continue
-                    if not (0 <= n.row < h and 0 <= n.col < w):
-                        continue
-                    seen.add(n)
-                    v = input[n.row][n.col]
-                    if v == "#":
-                        continue
-                    if v == "P":
-                        palms -= 1
-                    nf.add(n)
-            if palms == 0:
-                break
-            f = nf
-        return ans
+        palms = len([ch for line in input for ch in line if ch == "P"])
+        row_1 = next(iter(r for r in range(h) if input[r][0] == "."))
+        row_2 = next(iter(r for r in range(h) if input[r][w - 1] == "."))
+        starts = {Cell(row_1, 0), Cell(row_2, w - 1)}
+        return self.flood(input, starts, palms)[-1]
 
     def part_3(self, input: InputData) -> Output3:
-        h, w = len(input), len(input[0])
-        palms = 0
-        for line in input:
-            for ch in line:
-                if ch == "P":
-                    palms += 1
-
-        def flood(start: Cell) -> int:
-            t = 0
-            ans = 0
-            p = palms
-            f = {start}
-            seen = set()
-            seen.add(start)
-            while True:
-                t += 1
-                nf = set()
-                for node in f:
-                    for n in node.get_capital_neighbours():
-                        if n in seen:
-                            continue
-                        if not (0 <= n.row < h and 0 <= n.col < w):
-                            continue
-                        seen.add(n)
-                        v = input[n.row][n.col]
-                        if v == "#":
-                            continue
-                        if v == "P":
-                            p -= 1
-                            ans += t
-                        nf.add(n)
-                if p == 0:
-                    break
-                f = nf
-            return ans
-
+        palms = len([ch for line in input for ch in line if ch == "P"])
         ans = sys.maxsize
         cnt = 0
         for start in (
             Cell(r, c)
-            for r in range(h)
-            for c in range(w)
+            for r in range(len(input))
+            for c in range(len(input[0]))
             if input[r][c] == "."
         ):
             cnt += 1
             print(cnt, end="\r")
-            ans = min(ans, flood(start))
+            ans = min(ans, sum(_ for _ in self.flood(input, {start}, palms)))
         return ans
 
     @ec_samples(
