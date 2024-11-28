@@ -4,6 +4,8 @@
 #
 
 import sys
+from collections import defaultdict
+from collections import deque
 
 from ec.common import Cell
 from ec.common import InputData
@@ -84,19 +86,29 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         return self.flood(input, starts, palms)[-1]
 
     def part_3(self, input: InputData) -> Output3:
-        palms = len([ch for line in input for ch in line if ch == "P"])
-        ans = sys.maxsize
-        cnt = 0
-        for start in (
+        palms = [
             Cell(r, c)
             for r in range(len(input))
             for c in range(len(input[0]))
-            if input[r][c] == "."
-        ):
-            cnt += 1
-            print(cnt, end="\r")
-            ans = min(ans, sum(_ for _ in self.flood(input, {start}, palms)))
-        return ans
+            if input[r][c] == "P"
+        ]
+        distances = defaultdict[Cell, int](int)
+        for p in palms:
+            q: deque[tuple[int, Cell]] = deque({(0, p)})
+            seen = {p}
+            while len(q) > 0:
+                distance, node = q.pop()
+                distances[node] += distance
+                for n in node.get_capital_neighbours():
+                    if n in seen or input[n.row][n.col] == "#":
+                        continue
+                    seen.add(n)
+                    q.append((distance + 1, n))
+        start = min(
+            (c for c in distances.keys() if input[c.row][c.col] == "."),
+            key=lambda k: distances[k],
+        )
+        return sum(_ for _ in self.flood(input, {start}, len(palms)))
 
     @ec_samples(
         (
