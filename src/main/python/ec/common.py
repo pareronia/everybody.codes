@@ -96,10 +96,13 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
             if self.no_input:
                 return f"Part {self.part}: == NO INPUT FOUND =="
             answer = colored(self.answer, "white", attrs=["bold"])
-            return (
-                f"Part {self.part}:"
-                f" {answer}, took {self.duration_as_ms:.3f} ms"
-            )
+            if self.duration_as_ms <= 1_000:
+                duration = f"{self.duration_as_ms:.3f}"
+            elif self.duration_as_ms <= 5_000:
+                duration = colored(f"{self.duration_as_ms:.0f}", "yellow")
+            else:
+                duration = colored(f"{self.duration_as_ms:.0f}", "red")
+            return f"Part {self.part}: {answer}, took {duration} ms"
 
     def __init__(self, year: int, day: int):
         self.quest = Quest(year, day)
