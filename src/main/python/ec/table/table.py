@@ -10,6 +10,20 @@ def get_py(year: int, day: int) -> str:
     return f"[✓]({path})" if os.path.exists(path) else ""
 
 
+def get_java(year: int, day: int) -> str:
+    path = os.path.join(
+        "src",
+        "main",
+        "java",
+        "com",
+        "github",
+        "pareronia",
+        "everybody_codes",
+        f"Quest{year}_{day:02}.java",
+    )
+    return f"[✓]({path})" if os.path.exists(path) else ""
+
+
 def get_rank(stats: dict[Part, PartStats], year: int, day: int) -> str:
     return "&nbsp;/&nbsp;".join(
         str(stats[(year, day, p)].place).rjust(4).replace(" ", "&nbsp;")
@@ -39,16 +53,17 @@ def main(file_name: str) -> None:
                 print(line, file=f)
                 year = int(line.split("@")[1].split(":")[2])
                 stats = get_user_stats(year)
-                print("| Quest | python3 | Rank | Points |", file=f)
-                print("| --- | --- | --- | --- |", file=f)
+                print("| Quest | python3 | java | Rank | Points |", file=f)
+                print("| --- | --- | --- | --- | --- |", file=f)
                 for day in range(1, 21):
                     if (year, day, 3) in stats:
                         py = get_py(year, day)
+                        java = get_java(year, day)
                         rank = get_rank(stats, year, day)
                         points = get_points(stats, year, day)
                     else:
-                        py, rank, points = "", "", ""
-                    line = f"|[{day}]({url}{day})|{py}|{rank}|{points}|"
+                        py, java, rank, points = "", "", "", ""
+                    line = f"|[{day}]({url}{day})|{py}|{java}|{rank}|{points}|"
                     print(line, file=f)
             elif line.startswith("<!-- @END:Quests"):
                 in_table = False

@@ -7,3 +7,4 @@ inputs
 .classpath
 .project
 .settings/
+build/

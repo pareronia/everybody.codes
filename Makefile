@@ -1,14 +1,20 @@
 # statics
-PYTHON_SRC_ROOT := src/main/python
+SRC_ROOT := src/main
+PYTHON_SRC_ROOT := $(SRC_ROOT)/python
+JAVA_SRC_ROOT := $(SRC_ROOT)/java/com/github/pareronia/everybody_codes
+DST_ROOT := build
+JAVA_DST := $(DST_ROOT)/java/classes
 BLACK := black
 FLAKE := flake8
 VULTURE := vulture
 MYPY := mypy
+JAVAC_CMD := javac
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # vars
 PY_SRCS = $(shell find $(PYTHON_SRC_ROOT) -name "*.py" -not -path "$(PYTHON_SRC_ROOT)/.venv/*")
+JAVA_SRCS = $(shell find $(JAVA_SRC_ROOT) -name "*.java")
 
 # functions
 msg = (if [ -t 1 ]; then echo ${BLUE}"\n$1\n"${NC}; else echo "$1"; fi)
@@ -35,6 +41,10 @@ mypy:
 
 #: Run all linters (black.check, flake, vulture, mypy)
 lint: black.check flake vulture mypy
+
+#: Build Java
+build.java:
+	@$(JAVAC_CMD) -d $(JAVA_DST) $(JAVA_SRCS)
 
 #: git pre-push hook
 pre-push: lint
