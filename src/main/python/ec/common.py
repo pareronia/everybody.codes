@@ -269,6 +269,34 @@ class Direction(Enum):
             Direction.LEFT_AND_UP,
         }
 
+    def turn(self, turn: Turn) -> Direction:
+        if self == Direction.UP:
+            return (
+                Direction.DOWN
+                if turn == Turn.AROUND
+                else Direction.LEFT if turn == Turn.LEFT else Direction.RIGHT
+            )
+        elif self == Direction.RIGHT:
+            return (
+                Direction.LEFT
+                if turn == Turn.AROUND
+                else Direction.UP if turn == Turn.LEFT else Direction.DOWN
+            )
+        elif self == Direction.DOWN:
+            return (
+                Direction.UP
+                if turn == Turn.AROUND
+                else Direction.RIGHT if turn == Turn.LEFT else Direction.LEFT
+            )
+        elif self == Direction.LEFT:
+            return (
+                Direction.RIGHT
+                if turn == Turn.AROUND
+                else Direction.DOWN if turn == Turn.LEFT else Direction.UP
+            )
+        else:
+            raise ValueError
+
 
 @unique
 class Direction3D(Enum):
@@ -342,3 +370,17 @@ class Position3D(NamedTuple):
         return Position3D(
             self.x + direction.x, self.y + direction.y, self.z + direction.z
         )
+
+
+class Turn(Enum):
+    letter: str
+
+    def __new__(cls, value: int, letter: str) -> Turn:
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.letter = letter
+        return obj
+
+    LEFT = (270, "L")
+    RIGHT = (90, "R")
+    AROUND = (180, None)

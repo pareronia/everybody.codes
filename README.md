@@ -25,6 +25,6 @@
 |[16](https://everybody.codes/event/2024/quests/16)|[✓](src/main/python/2024_16.py)|&nbsp;&nbsp;67&nbsp;/&nbsp;&nbsp;&nbsp;48&nbsp;/&nbsp;&nbsp;&nbsp;51|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;53&nbsp;/&nbsp;100|
 |[17](https://everybody.codes/event/2024/quests/17)|[✓](src/main/python/2024_17.py)|&nbsp;115&nbsp;/&nbsp;&nbsp;113&nbsp;/&nbsp;&nbsp;&nbsp;63|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;88|
 |[18](https://everybody.codes/event/2024/quests/18)|[✓](src/main/python/2024_18.py)|&nbsp;&nbsp;72&nbsp;/&nbsp;&nbsp;&nbsp;60&nbsp;/&nbsp;&nbsp;&nbsp;53|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;41&nbsp;/&nbsp;&nbsp;98|
-|[19](https://everybody.codes/event/2024/quests/19)||||
-|[20](https://everybody.codes/event/2024/quests/20)||||
+|[19](https://everybody.codes/event/2024/quests/19)|[✓](src/main/python/2024_19.py)|&nbsp;&nbsp;59&nbsp;/&nbsp;&nbsp;&nbsp;51&nbsp;/&nbsp;&nbsp;&nbsp;47|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;50&nbsp;/&nbsp;104|
+|[20](https://everybody.codes/event/2024/quests/20)|[✓](src/main/python/2024_20.py)|&nbsp;129&nbsp;/&nbsp;&nbsp;&nbsp;92&nbsp;/&nbsp;&nbsp;&nbsp;64|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;9&nbsp;/&nbsp;&nbsp;87|
 <!-- @END:Quests:2024@ -->
