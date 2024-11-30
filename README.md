@@ -4,6 +4,8 @@
 
 ## 2024
 
+![2024 Medal](doc/ec2024_small.jpg "2024 Medal")
+
 <!-- @BEGIN:Quests:2024@ -->
 | Quest | python3 | Rank | Points |
 | --- | --- | --- | --- |
