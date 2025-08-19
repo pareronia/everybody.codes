@@ -52,10 +52,10 @@ def get_user_stats(year: int) -> dict[Part, PartStats]:
                 year=year,
                 day=quest,
                 part=part,
-                global_time=stats[quest][part]["time"],
-                local_time=stats[quest][part]["localTime"],
-                place=stats[quest][part]["globalPlace"],
-                score=stats[quest][part]["globalScore"],
+                global_time=stats[quest][part].global_time,
+                local_time=stats[quest][part].time,
+                place=stats[quest][part].place,
+                score=stats[quest][part].score,
             )
     return ans
 
@@ -67,9 +67,9 @@ def get_quest_stats(year: int) -> dict[int, QuestStats]:
         ans[quest] = QuestStats(
             year=year,
             day=quest,
-            completed_1=stats[quest]["p1"],
-            completed_2=stats[quest]["p2"],
-            completed_3=stats[quest]["p3"],
+            completed_1=stats[quest][1],
+            completed_2=stats[quest][2],
+            completed_3=stats[quest][3],
         )
     return ans
 

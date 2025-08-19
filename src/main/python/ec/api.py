@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import sys
+from dataclasses import dataclass
 from enum import Enum
 from enum import auto
 from enum import unique
@@ -38,9 +39,9 @@ def check_online[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     return inner
 
 
-def check_http_response[
-    **P, T
-](func: Callable[P, requests.Response]) -> Callable[P, API.Response]:
+def check_http_response[**P, T](
+    func: Callable[P, requests.Response],
+) -> Callable[P, API.Response]:
     def inner(*args: P.args, **kwargs: P.kwargs) -> API.Response:
         response = func(*args, **kwargs)
         logger.debug((response.status_code, response.reason, response.text))
@@ -67,18 +68,12 @@ class SubmitResponse(TypedDict, total=False):
     error: RuntimeError
 
 
-class QuestUserStats(TypedDict, total=True):
-    time: ReadOnly[int]
-    localTime: ReadOnly[int]
-    globalPlace: ReadOnly[int]
-    globalScore: ReadOnly[int]
-
-
-class QuestStats(TypedDict, total=True):
-    opened: ReadOnly[int]
-    p1: ReadOnly[int]
-    p2: ReadOnly[int]
-    p3: ReadOnly[int]
+@dataclass(frozen=True, init=True, kw_only=True)
+class QuestUserStats:
+    time: int
+    global_time: int
+    place: int
+    score: int
 
 
 class API:
@@ -89,6 +84,7 @@ class API:
         OK = auto()
         EMPTY = auto()
         BAD_TOKEN = auto()
+        NOT_FOUND = auto()
         ALREADY_SUBMITTED = auto()
         NOT_OPENED = auto()
         LOCKED_OUT = auto()
@@ -100,6 +96,8 @@ class API:
             match code:
                 case 200:
                     return API.ResponseType.OK
+                case 404:
+                    return API.ResponseType.NOT_FOUND
                 case 409:
                     return API.ResponseType.ALREADY_SUBMITTED
                 case 412:
@@ -138,6 +136,7 @@ class API:
             "User-Agent": self.USER_AGENT,
         }
         self.seed: str | None = None
+        self.id: str | None = None
 
     @check_http_response
     def do_get(self, url: str) -> requests.Response:
@@ -147,17 +146,26 @@ class API:
     def do_post(self, url: str, json: dict[str, str]) -> requests.Response:
         return requests.post(url, headers=self.headers, timeout=10, json=json)
 
+    def get_seed(self) -> str | None:
+        if self.seed is None:
+            self.get_me()
+        return self.seed
+
+    def get_id(self) -> str | None:
+        if self.id is None:
+            self.get_me()
+        return self.id
+
     @check_online
-    def get_seed(self) -> str:
-        if self.seed is not None:
-            return self.seed
+    def get_me(self) -> None:
         response = self.do_get(f"{self.API_URL}/user/me")
         response_: requests.Response = (
             response.response  # type:ignore[assignment]
         )
-        logger.debug(response_.json())
-        self.seed = str(response_.json()["seed"])
-        return self.seed
+        j = response_.json()
+        logger.debug(j)
+        self.seed = str(j["seed"])
+        self.id = str(j["id"])
 
     @check_online
     def get_quest_data(self, year: int, day: int) -> QuestData:
@@ -247,35 +255,49 @@ class API:
     def get_user_stats(
         self, year: int
     ) -> dict[int, dict[int, QuestUserStats]]:
-        response = self.do_get(f"{self.API_URL}/event/{year}/my")
+        response = self.do_post(
+            f"{self.API_URL}/ranking/{year}/user/{self.get_id()}", dict()
+        )
         response_: requests.Response = (
             response.response  # type:ignore[assignment]
         )
         user_stats = dict[int, dict[int, QuestUserStats]]()
-        quests = response_.json()["quests"]
-        for quest in quests:
-            quest_stats = dict[int, QuestUserStats]()
-            for part in quests[quest]:
-                stats: QuestUserStats = quests[quest][part]
-                quest_stats[int(part)] = stats
-            user_stats[int(quest)] = quest_stats
+        items = response_.json()
+        for item in items:
+            quest = int(item[0])
+            part = int(item[1])
+            place = int(item[4])
+            stat = QuestUserStats(
+                time=int(item[3]),
+                global_time=int(item[2]),
+                place=place,
+                score=max(part * 50 - place + 1, 0),
+            )
+            if quest not in user_stats:
+                user_stats[quest] = dict[int, QuestUserStats]()
+            user_stats[quest][part] = stat
         return user_stats
 
     @check_online
-    def get_quest_stats(self, year: int) -> dict[int, QuestStats]:
-        response = self.do_get(f"{self.API_URL}/event/{year}/stats/general")
+    def get_quest_stats(self, year: int) -> dict[int, dict[int, int]]:
+        response = self.do_post(f"{self.API_URL}/ranking/{year}/stats", dict())
         response_: requests.Response = (
             response.response  # type:ignore[assignment]
         )
-        quest_stats = dict[int, QuestStats]()
-        quests = response_.json()
-        for quest in quests:
-            stats: QuestStats = quests[quest]
-            quest_stats[int(quest)] = stats
+        quest_stats = dict[int, dict[int, int]]()
+        items = response_.json()
+        for item in items:
+            part = int(item[1])
+            if part == 0:
+                continue
+            quest = int(item[0])
+            completed = int(item[2])
+            if quest not in quest_stats:
+                quest_stats[quest] = dict[int, int]()
+            quest_stats[quest][part] = completed
         return quest_stats
 
-    def decrypt_text(self, cipher_text: str, key_string: str) -> str:
-        key = key_string[:20] + "~" + key_string[21:]
+    def decrypt_text(self, cipher_text: str, key: str) -> str:
         decryptor = Cipher(
             algorithms.AES(key=key.encode("utf-8")),
             modes.CBC(initialization_vector=key[:16].encode("utf-8")),

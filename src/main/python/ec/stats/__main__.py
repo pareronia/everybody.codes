@@ -9,6 +9,7 @@ logging.basicConfig(level=logging.INFO)
 args = sys.argv[1:]
 if "-v" in args:
     logging.getLogger("ec.stats").setLevel(logging.DEBUG)
+    args = [a for a in args if a != "-v"]
 if "-vv" in args:
     logging.getLogger().setLevel(logging.DEBUG)
     args = [a for a in args if a != "-vv"]
