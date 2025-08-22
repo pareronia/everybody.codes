@@ -1,18 +1,17 @@
-import os
+from pathlib import Path
 
-from ..stats.stats import Part
-from ..stats.stats import PartStats
-from ..stats.stats import get_user_stats
+from ec.stats.stats import Part
+from ec.stats.stats import PartStats
+from ec.stats.stats import get_user_stats
 
 
 def get_py(year: int, day: int) -> str:
-    path = os.path.join("src", "main", "python", f"{year}_{day:02}.py")
-    return f"[✓]({path})" if os.path.exists(path) else ""
+    path = Path("src") / "main" / "python" / f"{year}_{day:02}.py"
+    return f"[✓]({path})" if path.exists() else ""
 
 
 def get_java(year: int, day: int) -> str:
-    path = os.path.join(
-        "src",
+    path = Path("src").joinpath(
         "main",
         "java",
         "com",
@@ -21,7 +20,7 @@ def get_java(year: int, day: int) -> str:
         "everybody_codes",
         f"Quest{year}_{day:02}.java",
     )
-    return f"[✓]({path})" if os.path.exists(path) else ""
+    return f"[✓]({path})" if path.exists() else ""
 
 
 def get_rank(stats: dict[Part, PartStats], year: int, day: int) -> str:
@@ -43,9 +42,9 @@ def get_points(stats: dict[Part, PartStats], year: int, day: int) -> str:
 
 def main(file_name: str) -> None:
     url = "https://everybody.codes/event/2024/quests/"
-    with open(file_name, "r") as f:
+    with Path(file_name).open("r") as f:
         tmp = f.read()
-    with open(file_name, "w") as f:
+    with Path(file_name).open("w") as f:
         in_table = False
         for line in tmp.splitlines():
             if line.startswith("<!-- @BEGIN:Quests"):
@@ -63,14 +62,13 @@ def main(file_name: str) -> None:
                         points = get_points(stats, year, day)
                     else:
                         py, java, rank, points = "", "", "", ""
-                    line = f"|[{day}]({url}{day})|{py}|{java}|{rank}|{points}|"
-                    print(line, file=f)
+                    row = f"|[{day}]({url}{day})|{py}|{java}|{rank}|{points}|"
+                    print(row, file=f)
             elif line.startswith("<!-- @END:Quests"):
                 in_table = False
                 print(line, file=f)
-            else:
-                if not in_table:
-                    print(line, file=f)
+            elif not in_table:
+                print(line, file=f)
 
 
 if __name__ == "__main__":

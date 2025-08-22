@@ -2,6 +2,7 @@
 #
 # everybody.codes 2024 Quest 12
 #
+# ruff:noqa:N806
 
 import sys
 from collections import defaultdict
@@ -41,13 +42,14 @@ CATAPULTS = {(Position(0, 0), 1), (Position(0, 1), 2), (Position(0, 2), 3)}
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-
-    def parse(self, input: InputData) -> dict[Position, int]:
+    def parse(self, input_data: InputData) -> dict[Position, int]:
         return {
-            Position(x - 1, len(input) - y - 2): 1 if input[y][x] == "T" else 2
-            for x in range(len(input[0]))
-            for y in range(len(input))
-            if input[y][x] in {"H", "T"}
+            Position(x - 1, len(input_data) - y - 2): 1
+            if input_data[y][x] == "T"
+            else 2
+            for x in range(len(input_data[0]))
+            for y in range(len(input_data))
+            if input_data[y][x] in {"H", "T"}
         }
 
     def at_my_signal_unleash_hell(
@@ -75,18 +77,18 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                     ans += score(pos, power, catapult[1])
         return ans
 
-    def part_1(self, input: InputData) -> Output1:
-        targets = self.parse(input)
+    def part_1(self, input_data: InputData) -> Output1:
+        targets = self.parse(input_data)
         return self.at_my_signal_unleash_hell(targets, 20)
 
-    def part_2(self, input: InputData) -> Output2:
-        targets = self.parse(input)
+    def part_2(self, input_data: InputData) -> Output2:
+        targets = self.parse(input_data)
         return self.at_my_signal_unleash_hell(targets, 40)
 
-    def part_3(self, input: InputData) -> Output3:
-        """https://old.reddit.com/r/everybodycodes/comments/1gvap61/2024_q12_solution_spotlight/ly2adkc/"""  # noqa E501
+    def part_3(self, input_data: InputData) -> Output3:
+        """https://old.reddit.com/r/everybodycodes/comments/1gvap61/2024_q12_solution_spotlight/ly2adkc/."""
         M = set[tuple[int, int]]()
-        for line in input:
+        for line in input_data:
             x, y = map(int, line.split())
             M.add((x, y))
 
@@ -119,11 +121,11 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                 D[p.pos] = min(D[p.pos], p.rank)
             MM = set()
             for m in M:
-                m = (m[0] - 1, m[1] - 1)
-                if m in D:
-                    ans += D[m]
+                mm = (m[0] - 1, m[1] - 1)
+                if mm in D:
+                    ans += D[mm]
                 else:
-                    MM.add(m)
+                    MM.add(mm)
             M = MM
         return ans
 

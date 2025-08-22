@@ -5,7 +5,7 @@
 
 import sys
 from collections import defaultdict
-from typing import Sequence
+from collections.abc import Sequence
 
 from ec.common import InputData
 from ec.common import SolutionBase
@@ -31,9 +31,9 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
     def shout(self, cols: Sequence[Sequence[int]]) -> int:
         return int("".join(str(cols[j][0]) for j in range(len(cols))))
 
-    def get_cols(self, input: InputData) -> list[list[int]]:
+    def get_cols(self, input_data: InputData) -> list[list[int]]:
         cols: list[list[int]] = [[], [], [], []]
-        for line in input:
+        for line in input_data:
             nums = list(map(int, line.split()))
             for j in range(len(cols)):
                 cols[j].append(nums[j])
@@ -48,14 +48,14 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         cols[dest].insert(pos, n)
         return self.shout(cols)
 
-    def part_1(self, input: InputData) -> Output1:
-        cols = self.get_cols(input)
+    def part_1(self, input_data: InputData) -> Output1:
+        cols = self.get_cols(input_data)
         for r in range(10):
             ans = self.round(cols, r)
         return ans
 
-    def part_2(self, input: InputData) -> Output2:
-        cols = self.get_cols(input)
+    def part_2(self, input_data: InputData) -> Output2:
+        cols = self.get_cols(input_data)
         nums = defaultdict[int, int](int)
         r = 0
         while True:
@@ -65,8 +65,8 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                 return ans * (r + 1)
             r += 1
 
-    def part_3(self, input: InputData) -> Output3:
-        cols = self.get_cols(input)
+    def part_3(self, input_data: InputData) -> Output3:
+        cols = self.get_cols(input_data)
         seen = set[tuple[tuple[int, ...], ...]]()
         r = 0
         while True:

@@ -1,3 +1,5 @@
+# ruff:noqa:ERA001
+#
 from __future__ import annotations
 
 import http.client
@@ -9,11 +11,14 @@ from dataclasses import dataclass
 from enum import Enum
 from enum import auto
 from enum import unique
+from typing import TYPE_CHECKING
 from typing import Any
-from typing import Callable
 from typing import NamedTuple
 from typing import ReadOnly
 from typing import TypedDict
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 import requests
 from cryptography.hazmat.primitives.ciphers import Cipher
@@ -21,16 +26,13 @@ from cryptography.hazmat.primitives.ciphers import algorithms
 from cryptography.hazmat.primitives.ciphers import modes
 from termcolor import colored
 
-if __name__ == "__main__":
-    from __init__ import is_online  # type:ignore
-else:
-    from . import is_online
+from . import is_online
 
 logger = logging.getLogger(__name__)
 
 
 def check_online[**P, T](func: Callable[P, T]) -> Callable[P, T]:
-    def inner(*args: P.args, **kwargs: P.kwargs) -> Any:
+    def inner(*args: P.args, **kwargs: P.kwargs) -> Any:  # noqa:ANN401
         if not is_online():
             print("= OFFLINE =", file=sys.stderr)
             return None
@@ -41,17 +43,16 @@ def check_online[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 
 def check_http_response[**P, T](
     func: Callable[P, requests.Response],
-) -> Callable[P, API.Response]:
-    def inner(*args: P.args, **kwargs: P.kwargs) -> API.Response:
+) -> Callable[P, requests.Response]:
+    def inner(*args: P.args, **kwargs: P.kwargs) -> requests.Response:
         response = func(*args, **kwargs)
         logger.debug((response.status_code, response.reason, response.text))
         response_type = API.ResponseType.from_http_status_code(
             response.status_code
         )
-        if response_type == API.ResponseType.OK:
-            return API.Response(API.ResponseType.OK, "OK", response)
-        else:
+        if response_type != API.ResponseType.OK:
             raise RuntimeError(response_type)
+        return response
 
     return inner
 
@@ -77,7 +78,7 @@ class QuestUserStats:
 
 
 class API:
-    """See: https://old.reddit.com/r/everybodycodes/wiki/index"""
+    """See: https://old.reddit.com/r/everybodycodes/wiki/index."""
 
     @unique
     class ResponseType(Enum):
@@ -92,7 +93,7 @@ class API:
         UNCATEGORIZED_ERROR = auto()
 
         @classmethod
-        def from_http_status_code(_, code: int) -> API.ResponseType:
+        def from_http_status_code(cls, code: int) -> API.ResponseType:  # noqa:PLR0911
             match code:
                 case 200:
                     return API.ResponseType.OK
@@ -130,7 +131,7 @@ class API:
         "github:pareronia https://github.com/pareronia/everybody.codes"
     )
 
-    def __init__(self, cookie: str):
+    def __init__(self, cookie: str) -> None:
         self.headers = {
             "Cookie": f"everybody-codes={cookie}",
             "User-Agent": self.USER_AGENT,
@@ -159,10 +160,7 @@ class API:
     @check_online
     def get_me(self) -> None:
         response = self.do_get(f"{self.API_URL}/user/me")
-        response_: requests.Response = (
-            response.response  # type:ignore[assignment]
-        )
-        j = response_.json()
+        j = response.json()
         logger.debug(j)
         self.seed = str(j["seed"])
         self.id = str(j["id"])
@@ -170,11 +168,8 @@ class API:
     @check_online
     def get_quest_data(self, year: int, day: int) -> QuestData:
         response = self.do_get(f"{self.API_URL}/event/{year}/quest/{day}")
-        response_: requests.Response = (
-            response.response  # type:ignore[assignment]
-        )
-        logger.debug(response_.text)
-        quest_data: API.QuestData = response_.json()
+        logger.debug(response.text)
+        quest_data: API.QuestData = response.json()
         return quest_data
 
     @check_online
@@ -188,7 +183,7 @@ class API:
             case 3:
                 return quest_data.get("answer3", None)
             case _:
-                raise ValueError()
+                raise ValueError
 
     @check_online
     def get_title(self, year: int, day: int) -> str | None:
@@ -198,10 +193,7 @@ class API:
         response = self.do_get(
             f"{self.ASSET_URL}/{year}/{day}/description.json"
         )
-        response_: requests.Response = (
-            response.response  # type:ignore[assignment]
-        )
-        return self.decrypt_text(response_.json()["title"], quest_data["key1"])
+        return self.decrypt_text(response.json()["title"], quest_data["key1"])
 
     @check_online
     def get_input(self, year: int, day: int, part: int) -> str | None:
@@ -214,22 +206,19 @@ class API:
             case 3:
                 key = quest_data.get("key3", None)
             case _:
-                raise ValueError()
+                raise ValueError
         if key is None:
             return None
         seed = self.get_seed()
         response = self.do_get(
             f"{self.ASSET_URL}/{year}/{day}/input/{seed}.json"
         )
-        response_: requests.Response = (
-            response.response  # type:ignore[assignment]
-        )
-        logger.debug(response_.text)
-        return self.decrypt_text(response_.json()[str(part)], key)
+        logger.debug(response.text)
+        return self.decrypt_text(response.json()[str(part)], key)
 
     @check_online
     def submit_answer(
-        self, year: int, day: int, part: int, answer: Any
+        self, year: int, day: int, part: int, answer: str | int | None
     ) -> SubmitResponse:
         submit_response: SubmitResponse
         if answer is None or len(str(answer).strip()) == 0:
@@ -240,29 +229,21 @@ class API:
             url = f"{self.API_URL}/event/{year}/quest/{day}/part/{part}/answer"
             payload = {"answer": str(answer)}
             response = self.do_post(url, payload)
+            submit_response = response.json()
         except RuntimeError as error:
             submit_response = json.loads("{}")
             submit_response["error"] = error
-        else:
-            response_: requests.Response = (
-                response.response  # type:ignore[assignment]
-            )
-            submit_response = response_.json()
-        finally:
-            return submit_response
+        return submit_response
 
     @check_online
     def get_user_stats(
         self, year: int
     ) -> dict[int, dict[int, QuestUserStats]]:
         response = self.do_post(
-            f"{self.API_URL}/ranking/{year}/user/{self.get_id()}", dict()
-        )
-        response_: requests.Response = (
-            response.response  # type:ignore[assignment]
+            f"{self.API_URL}/ranking/{year}/user/{self.get_id()}", {}
         )
         user_stats = dict[int, dict[int, QuestUserStats]]()
-        items = response_.json()
+        items = response.json()
         for item in items:
             quest = int(item[0])
             part = int(item[1])
@@ -280,12 +261,9 @@ class API:
 
     @check_online
     def get_quest_stats(self, year: int) -> dict[int, dict[int, int]]:
-        response = self.do_post(f"{self.API_URL}/ranking/{year}/stats", dict())
-        response_: requests.Response = (
-            response.response  # type:ignore[assignment]
-        )
+        response = self.do_post(f"{self.API_URL}/ranking/{year}/stats", {})
         quest_stats = dict[int, dict[int, int]]()
-        items = response_.json()
+        items = response.json()
         for item in items:
             part = int(item[1])
             if part == 0:
@@ -312,7 +290,7 @@ class API:
 
 class SubmitResponseFormatter:
     @classmethod
-    def box(cls, lines: list[str], color: Any) -> list[str]:
+    def box(cls, lines: list[str], color: str) -> list[str]:
         width = max(len(line) for line in lines) + 4
         box = list[str]()
         box.append(
@@ -322,13 +300,11 @@ class SubmitResponseFormatter:
         )
         for line in lines:
             box.append(
-                (
-                    colored(chr(0x2551), color)
-                    + " "
-                    + line.ljust(width - 4, " ")
-                    + " "
-                    + colored(chr(0x2551), color)
-                )
+                colored(chr(0x2551), color)
+                + " "
+                + line.ljust(width - 4, " ")
+                + " "
+                + colored(chr(0x2551), color)
             )
         box.append(
             colored(
@@ -345,10 +321,10 @@ class SubmitResponseFormatter:
             messages = {
                 API.ResponseType.EMPTY: "Tried to submit empty answer.",
                 API.ResponseType.ALREADY_SUBMITTED: "Already submitted.",
-                API.ResponseType.NOT_OPENED: "Quest/part not opened yet.",  # noqa E501
+                API.ResponseType.NOT_OPENED: "Quest/part not opened yet.",
                 API.ResponseType.BAD_TOKEN: "Missing/wrong/expired token",
-                API.ResponseType.LOCKED_OUT: "Too soon / Submitted in lock out period.",  # noqa E501
-                API.ResponseType.BAD_QUEST: "Quest/part does not exist.",  # noqa E501
+                API.ResponseType.LOCKED_OUT: "Too soon / Submitted in lock out period.",  # noqa:E501
+                API.ResponseType.BAD_QUEST: "Quest/part does not exist.",
                 API.ResponseType.UNCATEGORIZED_ERROR: "Uncategorized error.",
             }
             code = response["error"].args[0]
@@ -363,23 +339,24 @@ class SubmitResponseFormatter:
         if response["correct"]:
             return cls.box(
                 [
-                    "Quack yeah!," "",
+                    "Quack yeah!,",
                     "",
-                    f"Place: {response["globalPlace"]}, "
-                    + f"Score: {response["globalScore"]}",
+                    (
+                        f"Place: {response['globalPlace']}, "
+                        f"Score: {response['globalScore']}"
+                    ),
                 ],
                 "green",
             )
-        else:
-            return cls.box(
-                [
-                    "Quacked up!," "",
-                    "",
-                    f"Correct length: {response["lengthCorrect"]}",
-                    f"First letter correct: {response["firstCorrect"]}",
-                ],
-                "red",
-            )
+        return cls.box(
+            [
+                "Quacked up!,",
+                "",
+                f"Correct length: {response['lengthCorrect']}",
+                f"First letter correct: {response['firstCorrect']}",
+            ],
+            "red",
+        )
 
 
 if __name__ == "__main__":

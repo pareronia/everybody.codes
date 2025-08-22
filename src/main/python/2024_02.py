@@ -38,24 +38,33 @@ TRODEOAL
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def part_1(self, input: InputData) -> Output1:
-        words, inscription = set(input[0][OFFSET:].split(",")), input[2]
+    def part_1(self, input_data: InputData) -> Output1:
+        words, inscription = (
+            set(input_data[0][OFFSET:].split(",")),
+            input_data[2],
+        )
         return sum(inscription.count(w) for w in words)
 
-    def part_2(self, input: InputData) -> Output2:
-        words, inscription = set(input[0][OFFSET:].split(",")), input[2:]
+    def part_2(self, input_data: InputData) -> Output2:
+        words, inscription = (
+            set(input_data[0][OFFSET:].split(",")),
+            input_data[2:],
+        )
         words |= {w[::-1] for w in words}
         ans = 0
         for line in inscription:
             runes = set[int]()
             for w in words:
                 for m in re.finditer(rf"(?={w})", line):
-                    runes |= {j for j in range(m.start(), m.start() + len(w))}
+                    runes |= set(range(m.start(), m.start() + len(w)))
             ans += len(runes)
         return ans
 
-    def part_3(self, input: InputData) -> Output3:
-        words, inscription = set(input[0][OFFSET:].split(",")), input[2:]
+    def part_3(self, input_data: InputData) -> Output3:
+        words, inscription = (
+            set(input_data[0][OFFSET:].split(",")),
+            input_data[2:],
+        )
         words |= {w[::-1] for w in words}
         extra = max(len(w) for w in words)
         runes = set[tuple[int, int]]()

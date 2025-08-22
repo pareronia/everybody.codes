@@ -17,24 +17,24 @@ Output3 = int
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def solve(self, input: InputData, group_size: int) -> int:
+    def solve(self, input_data: InputData, group_size: int) -> int:
         def potions(group: str) -> int:
             add = len(group) - group.count("x") - 1
             return sum(POTIONS[c] + add for c in group if c != "x")
 
         return sum(
-            potions(input[0][i : i + group_size])  # noqa E203
-            for i in range(0, len(input[0]), group_size)
+            potions(input_data[0][i : i + group_size])
+            for i in range(0, len(input_data[0]), group_size)
         )
 
-    def part_1(self, input: InputData) -> Output1:
-        return self.solve(input, group_size=1)
+    def part_1(self, input_data: InputData) -> Output1:
+        return self.solve(input_data, group_size=1)
 
-    def part_2(self, input: InputData) -> Output2:
-        return self.solve(input, group_size=2)
+    def part_2(self, input_data: InputData) -> Output2:
+        return self.solve(input_data, group_size=2)
 
-    def part_3(self, input: InputData) -> Output3:
-        return self.solve(input, group_size=3)
+    def part_3(self, input_data: InputData) -> Output3:
+        return self.solve(input_data, group_size=3)
 
     @ec_samples(
         (

@@ -29,16 +29,16 @@ TEST2 = """\
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def part_1(self, input: InputData) -> Output1:
-        nums = list(map(int, input))
+    def part_1(self, input_data: InputData) -> Output1:
+        nums = list(map(int, input_data))
         m = min(nums)
         return sum(n - m for n in nums)
 
-    def part_2(self, input: InputData) -> Output2:
-        return self.part_1(input)
+    def part_2(self, input_data: InputData) -> Output2:
+        return self.part_1(input_data)
 
-    def part_3(self, input: InputData) -> Output3:
-        nums = list(map(int, input))
+    def part_3(self, input_data: InputData) -> Output3:
+        nums = list(map(int, input_data))
         return min(sum(abs(n1 - n2) for n2 in nums) for n1 in nums)
 
     @ec_samples(

@@ -32,10 +32,10 @@ H:@
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def solve(self, input: InputData) -> list[str]:
+    def solve(self, input_data: InputData) -> list[str]:
         d = defaultdict[str, list[str]](list)
         cnt = 1
-        for line in input:
+        for line in input_data:
             if "BUG" in line or "ANT" in line:
                 continue
             n1, rest = line.split(":")
@@ -56,16 +56,16 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         ans = next(k for k, v in c.items() if len(v) == 1)
         return c[ans][0]
 
-    def part_1(self, input: InputData) -> Output1:
-        path = self.solve(input)
+    def part_1(self, input_data: InputData) -> Output1:
+        path = self.solve(input_data)
         return "".join(path[:-1]) + FLOWER
 
-    def part_2(self, input: InputData) -> Output2:
-        path = self.solve(input)
+    def part_2(self, input_data: InputData) -> Output2:
+        path = self.solve(input_data)
         return "".join(p[0] for p in path)
 
-    def part_3(self, input: InputData) -> Output3:
-        return self.part_2(input)
+    def part_3(self, input_data: InputData) -> Output3:
+        return self.part_2(input_data)
 
     @ec_samples((("part_1", TEST, "RRB@"),))
     def samples(self) -> None:

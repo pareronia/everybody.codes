@@ -4,7 +4,7 @@
 #
 
 import sys
-from typing import Callable
+from collections.abc import Callable
 
 from ec.common import InputData
 from ec.common import SolutionBase
@@ -23,7 +23,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                 return nxt * (tot - available)
             layer = thickness(layer)
             nxt += 2
-        raise ValueError("")
+        raise ValueError
 
     def solve_2(self, priests: int, acolytes: int, available: int) -> int:
         return self.solve(
@@ -45,16 +45,16 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             rem += 2 * ((priests * nxt * cols[i]) % acolytes)
         return cols[0] + 2 * sum(cols[1:]) - rem - available
 
-    def part_1(self, input: InputData) -> Output1:
-        available = int(list(input)[0])
-        return self.solve(available, lambda layer: 1)
+    def part_1(self, input_data: InputData) -> Output1:
+        available = int(next(iter(input_data)))
+        return self.solve(available, lambda _: 1)
 
-    def part_2(self, input: InputData) -> Output2:
-        priests = int(list(input)[0])
+    def part_2(self, input_data: InputData) -> Output2:
+        priests = int(next(iter(input_data)))
         return self.solve_2(priests, 1111, 20_240_000)
 
-    def part_3(self, input: InputData) -> Output3:
-        priests = int(list(input)[0])
+    def part_3(self, input_data: InputData) -> Output3:
+        priests = int(next(iter(input_data)))
         return self.solve_3(priests, 10, 202_400_000)
 
     def samples(self) -> None:

@@ -26,6 +26,7 @@ class RunicWordAndPower(NamedTuple):
 
     @classmethod
     def unsolvable(cls) -> RunicWordAndPower:
+        del cls
         return RunicWordAndPower("", 0)
 
 
@@ -58,7 +59,7 @@ TJ....YK....LP
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def solve(self, grid: CharGrid, start: Cell) -> RunicWordAndPower:
+    def solve(self, grid: CharGrid, start: Cell) -> RunicWordAndPower:  # noqa:PLR0912,C901
         r_s, c_s = start
 
         block = [
@@ -68,8 +69,8 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         for r, c in block:
             if grid[r][c] not in {".", "?"}:
                 continue
-            row = {grid[r][c_s + i] for i in {0, 1, 6, 7}}
-            col = {grid[r_s + i][c] for i in {0, 1, 6, 7}}
+            row = {grid[r][c_s + i] for i in [0, 1, 6, 7]}
+            col = {grid[r_s + i][c] for i in [0, 1, 6, 7]}
             both = row & col
             if len(both) == 1:
                 grid[r][c] = next(iter(both))
@@ -108,19 +109,19 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             power += (ord(rune) - ord("A") + 1) * len(word)
         return RunicWordAndPower(word, power)
 
-    def part_1(self, input: InputData) -> Output1:
-        grid = [[ch for ch in line] for line in input]
+    def part_1(self, input_data: InputData) -> Output1:
+        grid = [list(line) for line in input_data]
         return self.solve(grid, (0, 0)).word
 
-    def part_2(self, input: InputData) -> Output2:
-        grid = [[ch for ch in line] for line in input]
+    def part_2(self, input_data: InputData) -> Output2:
+        grid = [list(line) for line in input_data]
         return sum(
             self.solve(grid, (r, c)).power
             for r in range(0, len(grid), 9)
             for c in range(0, len(grid[0]), 9)
         )
 
-    def part_3(self, input: InputData) -> Output3:
+    def part_3(self, input_data: InputData) -> Output3:
         ans = 0
 
         def power(start: Cell) -> bool:
@@ -132,7 +133,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             ans += solution.power
             return False
 
-        grid = [[ch for ch in line] for line in input]
+        grid = [list(line) for line in input_data]
         starts = [
             (r, c)
             for r in range(0, len(grid) - 2, 6)

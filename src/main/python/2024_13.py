@@ -4,7 +4,7 @@
 #
 
 import sys
-from typing import Iterator
+from collections.abc import Iterator
 
 from ec.common import Cell
 from ec.common import InputData
@@ -38,23 +38,23 @@ SSSSSSSSSSS
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def solve(self, input: InputData) -> int:
+    def solve(self, input_data: InputData) -> int:
         def parse(
-            input: InputData,
+            input_data: InputData,
         ) -> tuple[dict[Cell, int], set[Platform], Platform]:
             platforms = dict[Cell, int]()
             starts = set()
-            for r in range(len(input)):
-                for c in range(len(input[0])):
-                    if input[r][c] == "S":
+            for r in range(len(input_data)):
+                for c in range(len(input_data[0])):
+                    if input_data[r][c] == "S":
                         start = Cell(r, c)
                         platforms[start] = 0
                         starts.add((start, 0))
-                    elif input[r][c] == "E":
+                    elif input_data[r][c] == "E":
                         end = Cell(r, c)
                         platforms[end] = 0
-                    elif input[r][c] not in {"#", " "}:
-                        platforms[Cell(r, c)] = int(input[r][c])
+                    elif input_data[r][c] not in {"#", " "}:
+                        platforms[Cell(r, c)] = int(input_data[r][c])
             return platforms, starts, (end, 0)
 
         def adjacent(p: Platform) -> Iterator[Platform]:
@@ -68,7 +68,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             d = abs(p[1] - n[1])
             return 1 + (10 % d if d > 5 else d)
 
-        platforms, starts, end = parse(input)
+        platforms, starts, end = parse(input_data)
         ans, _, _ = dijkstra(
             start=end,
             is_end=lambda p: p in starts,
@@ -77,14 +77,14 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         )
         return ans
 
-    def part_1(self, input: InputData) -> Output1:
-        return self.solve(input)
+    def part_1(self, input_data: InputData) -> Output1:
+        return self.solve(input_data)
 
-    def part_2(self, input: InputData) -> Output2:
-        return self.solve(input)
+    def part_2(self, input_data: InputData) -> Output2:
+        return self.solve(input_data)
 
-    def part_3(self, input: InputData) -> Output3:
-        return self.solve(input)
+    def part_3(self, input_data: InputData) -> Output3:
+        return self.solve(input_data)
 
     @ec_samples(
         (

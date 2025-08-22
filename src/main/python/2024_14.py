@@ -5,7 +5,7 @@
 
 import sys
 from collections import Counter
-from typing import Iterator
+from collections.abc import Iterator
 
 from ec.common import Direction3D
 from ec.common import InputData
@@ -36,38 +36,37 @@ U16,L1,B1,L1,B3,L1,B1,F1
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-
     def grow(
-        self, input: InputData
+        self, input_data: InputData
     ) -> tuple[set[Position3D], set[Position3D]]:
         segments, leaves = set(), set()
-        for line in input:
+        for line in input_data:
             curr = Position3D(0, 0, 0)
             for step in line.split(","):
                 d, a = step[0], int(step[1:])
-                dir = Direction3D.from_str(d)
+                direction = Direction3D.from_str(d)
                 for _ in range(a):
-                    next = curr.at(dir)
-                    segments.add(next)
-                    curr = next
+                    nxt = curr.at(direction)
+                    segments.add(nxt)
+                    curr = nxt
             leaves.add(curr)
         return segments, leaves
 
-    def part_1(self, input: InputData) -> Output1:
-        segments, _ = self.grow(input)
+    def part_1(self, input_data: InputData) -> Output1:
+        segments, _ = self.grow(input_data)
         return max(y for _, y, _ in segments)
 
-    def part_2(self, input: InputData) -> Output2:
-        segments, _ = self.grow(input)
+    def part_2(self, input_data: InputData) -> Output2:
+        segments, _ = self.grow(input_data)
         return len(segments)
 
-    def part_3(self, input: InputData) -> Output3:
+    def part_3(self, input_data: InputData) -> Output3:
         def adjacent(s: Position3D) -> Iterator[Position3D]:
             return (
                 n for d in Direction3D.capitals() if (n := s.at(d)) in segments
             )
 
-        segments, leaves = self.grow(input)
+        segments, leaves = self.grow(input_data)
         trunk = {s for s in segments if s.x == 0}
         dist = Counter[Position3D]()
         for lv in leaves:

@@ -18,13 +18,13 @@ TEST = """\
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def part_1(self, input: InputData) -> Output1:
+    def part_1(self, _input_data: InputData) -> Output1:
         return 0
 
-    def part_2(self, input: InputData) -> Output2:
+    def part_2(self, _input_data: InputData) -> Output2:
         return 0
 
-    def part_3(self, input: InputData) -> Output3:
+    def part_3(self, _input_data: InputData) -> Output3:
         return 0
 
     @ec_samples(

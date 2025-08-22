@@ -46,12 +46,12 @@ TEST3 = """\
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
     def flood(
-        self, input: InputData, starts: set[Cell], palms: int
+        self, input_data: InputData, starts: set[Cell], palms: int
     ) -> list[int]:
-        h, w = len(input), len(input[0])
+        h, w = len(input_data), len(input_data[0])
         ans = []
-        frontier = {_ for _ in starts}
-        seen = {_ for _ in starts}
+        frontier = set(starts)
+        seen = set(starts)
         t = 0
         while len(frontier) > 0:
             t += 1
@@ -62,7 +62,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                     if (nr, nc) in seen or not (0 <= nr < h and 0 <= nc < w):
                         continue
                     seen.add((nr, nc))
-                    v = input[nr][nc]
+                    v = input_data[nr][nc]
                     if v == "#":
                         continue
                     if v == "P":
@@ -74,23 +74,28 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             frontier = new_frontier
         return ans
 
-    def part_1(self, input: InputData) -> Output1:
-        palms = len([ch for line in input for ch in line if ch == "P"])
-        row = next(iter(r for r in range(len(input)) if input[r][0] == "."))
-        return self.flood(input, {(row, 0)}, palms)[-1]
+    def part_1(self, input_data: InputData) -> Output1:
+        palms = len([ch for line in input_data for ch in line if ch == "P"])
+        row = next(
+            iter(r for r in range(len(input_data)) if input_data[r][0] == ".")
+        )
+        return self.flood(input_data, {(row, 0)}, palms)[-1]
 
-    def part_2(self, input: InputData) -> Output2:
-        h, w = len(input), len(input[0])
-        palms = len([ch for line in input for ch in line if ch == "P"])
-        row_1 = next(iter(r for r in range(h) if input[r][0] == "."))
-        row_2 = next(iter(r for r in range(h) if input[r][w - 1] == "."))
+    def part_2(self, input_data: InputData) -> Output2:
+        h, w = len(input_data), len(input_data[0])
+        palms = len([ch for line in input_data for ch in line if ch == "P"])
+        row_1 = next(iter(r for r in range(h) if input_data[r][0] == "."))
+        row_2 = next(iter(r for r in range(h) if input_data[r][w - 1] == "."))
         starts = {(row_1, 0), (row_2, w - 1)}
-        return self.flood(input, starts, palms)[-1]
+        return self.flood(input_data, starts, palms)[-1]
 
-    def part_3(self, input: InputData) -> Output3:
-        h, w = len(input), len(input[0])
+    def part_3(self, input_data: InputData) -> Output3:
+        h, w = len(input_data), len(input_data[0])
         palms = {
-            (r, c) for r in range(h) for c in range(w) if input[r][c] == "P"
+            (r, c)
+            for r in range(h)
+            for c in range(w)
+            if input_data[r][c] == "P"
         }
         distances = defaultdict[Cell, int](int)
         for p in palms:
@@ -102,15 +107,15 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                 for dr, dc in DIRS:
                     nr, nc = r + dr, c + dc
                     # Don't need boundary check; entries will already be seen
-                    if (nr, nc) in seen or input[nr][nc] == "#":
+                    if (nr, nc) in seen or input_data[nr][nc] == "#":
                         continue
                     seen.add((nr, nc))
                     q.append((distance + 1, (nr, nc)))
         start = min(
-            ((r, c) for r, c in distances.keys() if input[r][c] == "."),
+            ((r, c) for r, c in distances if input_data[r][c] == "."),
             key=lambda k: distances[k],
         )
-        return sum(_ for _ in self.flood(input, {start}, len(palms)))
+        return sum(_ for _ in self.flood(input_data, {start}, len(palms)))
 
     @ec_samples(
         (

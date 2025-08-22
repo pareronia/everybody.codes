@@ -1,9 +1,9 @@
 import sys
 from collections import defaultdict
 from collections import deque
+from collections.abc import Callable
 from collections.abc import Iterator
 from queue import PriorityQueue
-from typing import Callable
 from typing import TypeVar
 
 T = TypeVar("T")
@@ -19,7 +19,7 @@ def bfs_path(
     seen: set[T] = set()
     seen.add(start)
     parent: dict[T, T] = {}
-    while not len(q) == 0:
+    while len(q) != 0:
         distance, node = q.popleft()
         if is_end(node):
             path = [node]
@@ -34,7 +34,8 @@ def bfs_path(
             seen.add(n)
             parent[n] = node
             q.append((distance + 1, n))
-    raise RuntimeError("unsolvable")
+    msg = "unsolvable"
+    raise RuntimeError(msg)
 
 
 def bfs(
@@ -46,7 +47,7 @@ def bfs(
     q.append((0, start))
     seen: set[T] = set()
     seen.add(start)
-    while not len(q) == 0:
+    while len(q) != 0:
         distance, node = q.popleft()
         if is_end(node):
             return distance
@@ -55,7 +56,8 @@ def bfs(
                 continue
             seen.add(n)
             q.append((distance + 1, n))
-    raise RuntimeError("unsolvable")
+    msg = "unsolvable"
+    raise RuntimeError(msg)
 
 
 def bfs_full(
@@ -69,7 +71,7 @@ def bfs_full(
     seen.add(start)
     parent: dict[T, T] = {}
     dists = defaultdict[T, int](int)
-    while not len(q) == 0:
+    while len(q) != 0:
         distance, node = q.popleft()
         if is_end(node):
             dists[node] = distance

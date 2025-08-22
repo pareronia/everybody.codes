@@ -1,29 +1,28 @@
-import os
 import shutil
+from pathlib import Path
 from string import Template
 
 
 def main(args: list[str]) -> None:
     if len(args) != 2:
-        raise ValueError(f"Usage: {__name__} <year> <day>")
+        msg = f"Usage: {__name__} <year> <day>"
+        raise ValueError(msg)
 
     year = args[0]
     day = args[1]
     day2 = f"{args[1]:0>2}"
-    template = os.path.join(
-        "src", "main", "resources", "generator", "template.py"
-    )
-    destination = os.path.join("src", "main", "python", f"{year}_{day2}.py")
-    if os.path.exists(destination):
+    template = Path("src") / "main" / "resources" / "generator" / "template.py"
+    destination = Path("src") / "main" / "python" / f"{year}_{day2}.py"
+    if destination.exists():
         print(f"'{destination}' already exists")
         return
-    os.makedirs(os.path.dirname(destination), exist_ok=True)
+    destination.parent.mkdir(exist_ok=True, parents=True)
     mappings = {"year": year, "day": day, "day2": day2}
     target = shutil.copyfile(template, destination)
-    with open(target, "r", encoding="utf-8") as f:
+    with target.open("r", encoding="utf-8") as f:
         t = Template(f.read())
         s = t.substitute(mappings)
-    with open(target, "w", encoding="utf-8") as f:
+    with target.open("w", encoding="utf-8") as f:
         f.write(s)
     print(f"Generated '{target}'")
     return

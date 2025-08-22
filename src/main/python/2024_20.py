@@ -2,6 +2,7 @@
 #
 # everybody.codes 2024 Quest 20
 #
+# ruff:noqa:ERA001
 
 import itertools
 import sys
@@ -14,9 +15,9 @@ from ec.common import SolutionBase
 from ec.common import Turn
 from ec.common import ec_samples
 
-Output1 = int
-Output2 = int
-Output3 = int
+type Output1 = int
+type Output2 = None
+type Output3 = int
 DA = {
     "S": -1,
     "#": -(10**9),
@@ -49,10 +50,11 @@ TEST2 = """\
 """
 
 
+# class Solution(SolutionBase[Output1, Output2, Output3]):
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def part_1(self, input: InputData) -> Output1:
-        h, w = len(input), len(input[0])
-        start = Cell(0, next(c for c in range(w) if input[0][c] == "S"))
+    def part_1(self, input_data: InputData) -> Output1:
+        h, w = len(input_data), len(input_data[0])
+        start = Cell(0, next(c for c in range(w) if input_data[0][c] == "S"))
         memo = defaultdict[tuple[Cell, Direction, int], int](lambda: -(10**9))
         for d in Direction.capitals():
             memo[(start, d, 0)] = 1000
@@ -63,7 +65,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                     n = cell.at(dd)
                     if not (0 <= n.row < h and 0 <= n.col < w):
                         continue
-                    v = input[n.row][n.col]
+                    v = input_data[n.row][n.col]
                     n_key = (n, dd, t + 1)
                     memo[n_key] = max(memo[n_key], memo[(cell, d, t)] + DA[v])
         ans = 0
@@ -74,21 +76,21 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                     ans = max(ans, memo[(cell, d, 100)])
         return ans
 
-    def part_2(self, input: InputData) -> Output2:
-        return 0
+    def part_2(self, _input_data: InputData) -> Output2:
+        return
 
-    def part_3(self, input: InputData) -> Output3:
-        h, w = len(input), len(input[0])
-        start = Cell(0, next(c for c in range(w) if input[0][c] == "S"))
+    def part_3(self, input_data: InputData) -> Output3:
+        h, w = len(input_data), len(input_data[0])
+        start = Cell(0, next(c for c in range(w) if input_data[0][c] == "S"))
         ans = 0
         alt = 384_400
-        for i in range(5):
+        for _ in range(5):
             start = start.at(Direction.RIGHT)
-            alt += DA[input[start.row][start.col]]
+            alt += DA[input_data[start.row][start.col]]
         while alt > 0:
             start = start.at(Direction.DOWN)
             start = Cell(start.row % h, start.col)
-            alt += DA[input[start.row][start.col]]
+            alt += DA[input_data[start.row][start.col]]
             ans += 1
         return ans
 

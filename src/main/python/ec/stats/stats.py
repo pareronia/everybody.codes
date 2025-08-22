@@ -1,12 +1,12 @@
 from datetime import timedelta
 from typing import NamedTuple
 
-from ..api import API
-from ..calendar import contest_started
-from ..calendar import now
-from ..calendar import valid_year
-from ..memo import get_title as memo_get_title
-from ..memo import get_token as memo_get_token
+from ec.api import API
+from ec.calendar import contest_started
+from ec.calendar import now
+from ec.calendar import valid_year
+from ec.memo import get_title as memo_get_title
+from ec.memo import get_token as memo_get_token
 
 Part = tuple[int, int, int]
 
@@ -31,8 +31,7 @@ class PartStats(NamedTuple):
         minutes = (t.seconds - hours * 3600) // 60
         if t.days > 0:
             return f"{t.days:3}d {hours:2}:{minutes:02}"
-        else:
-            return f"{hours:2}:{minutes:02}".rjust(10)
+        return f"{hours:2}:{minutes:02}".rjust(10)
 
 
 class QuestStats(NamedTuple):
@@ -80,15 +79,18 @@ def main(args: list[str]) -> None:
         if contest_started(year):
             print_year(year)
         else:
-            raise ValueError("No year provided")
+            msg = "No year provided"
+            raise ValueError(msg)
     elif len(args) == 1:
         year = int(args[0])
         if valid_year(year):
             print_year(year)
         else:
-            raise ValueError("Invalid year provided")
+            msg = "Invalid year provided"
+            raise ValueError(msg)
     else:
-        raise ValueError("Too many arguments")
+        msg = "Too many arguments"
+        raise ValueError(msg)
 
 
 def print_year(year: int) -> None:
@@ -130,7 +132,7 @@ def print_year(year: int) -> None:
 
     print("".ljust(wd) + headers())
     print()
-    days = {d for _, d, _ in user_stats.keys()}
+    days = {d for _, d, _ in user_stats}
     for day in sorted(days):
         day_title = memo_get_title(year, day)
         title = f"{day:2} {day_title}".ljust(wd - 1)[: wd - 1] + ":"

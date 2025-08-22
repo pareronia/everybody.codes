@@ -4,8 +4,8 @@
 #
 
 import sys
+from collections.abc import Iterator
 from math import prod
-from typing import Iterator
 
 from ec.common import InputData
 from ec.common import Position
@@ -36,27 +36,27 @@ TEST2 = """\
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def parse(self, input: InputData) -> set[Position]:
+    def parse(self, input_data: InputData) -> set[Position]:
         return {
             Position(x, y)
-            for y in range(len(input))
-            for x in range(len(input[0]))
-            if input[y][x] == "*"
+            for y in range(len(input_data))
+            for x in range(len(input_data[0]))
+            if input_data[y][x] == "*"
         }
 
-    def part_1(self, input: InputData) -> Output1:
-        stars = self.parse(input)
+    def part_1(self, input_data: InputData) -> Output1:
+        stars = self.parse(input_data)
         dist, seen = prim(
             next(iter(stars)),
             lambda s: ((n, n.manhattan_distance(s)) for n in stars),
         )
         return dist + len(seen)
 
-    def part_2(self, input: InputData) -> Output2:
-        return self.part_1(input)
+    def part_2(self, input_data: InputData) -> Output2:
+        return self.part_1(input_data)
 
-    def part_3(self, input: InputData) -> Output3:
-        stars = self.parse(input)
+    def part_3(self, input_data: InputData) -> Output3:
+        stars = self.parse(input_data)
 
         def adjacent(s: Position) -> Iterator[tuple[Position, int]]:
             for n in stars:

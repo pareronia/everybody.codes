@@ -37,8 +37,8 @@ D.H........
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def solve(self, grid: list[list[str]], key: str, rounds: int) -> str:
-        """https://cp-algorithms.com/algebra/binary-exp.html#applying-a-permutation-k-times"""  # noqa E501
+    def solve(self, grid: list[list[str]], key: str, rounds: int) -> str:  # noqa:C901
+        """https://cp-algorithms.com/algebra/binary-exp.html#applying-a-permutation-k-times."""
         h, w = len(grid), len(grid[0])
 
         def rotate(grid: list[list[Cell]], key: str) -> None:
@@ -95,17 +95,17 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                 print("".join([new_grid[r][c] for c in range(w)]))
         return get_message(new_grid)
 
-    def part_1(self, input: InputData) -> Output1:
-        grid = [[ch for ch in line] for line in input[2:]]
-        return self.solve(grid, input[0], 1)
+    def part_1(self, input_data: InputData) -> Output1:
+        grid = [list(line) for line in input_data[2:]]
+        return self.solve(grid, input_data[0], 1)
 
-    def part_2(self, input: InputData) -> Output2:
-        grid = [[ch for ch in line] for line in input[2:]]
-        return self.solve(grid, input[0], 100)
+    def part_2(self, input_data: InputData) -> Output2:
+        grid = [list(line) for line in input_data[2:]]
+        return self.solve(grid, input_data[0], 100)
 
-    def part_3(self, input: InputData) -> Output3:
-        grid = [[ch for ch in line] for line in input[2:]]
-        return self.solve(grid, input[0], 1_048_576_000)
+    def part_3(self, input_data: InputData) -> Output3:
+        grid = [list(line) for line in input_data[2:]]
+        return self.solve(grid, input_data[0], 1_048_576_000)
 
     @ec_samples(
         (

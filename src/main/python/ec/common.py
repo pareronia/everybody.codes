@@ -5,13 +5,13 @@ import os
 import time
 from abc import ABC
 from abc import abstractmethod
+from collections.abc import Callable
+from collections.abc import Iterator
 from enum import Enum
 from enum import unique
 from typing import Any
-from typing import Callable
-from typing import Generic
-from typing import Iterator
 from typing import NamedTuple
+from typing import Self
 from typing import TypeVar
 from typing import cast
 
@@ -38,7 +38,7 @@ def log(msg: object) -> None:
 
 
 class Quest:
-    def __init__(self, year: int, day: int):
+    def __init__(self, year: int, day: int) -> None:
         self.year = year
         self.day = day
 
@@ -56,15 +56,16 @@ class Quest:
 
 
 InputData = tuple[str, ...]
-OUTPUT1 = TypeVar("OUTPUT1", bound=str | int)
-OUTPUT2 = TypeVar("OUTPUT2", bound=str | int)
-OUTPUT3 = TypeVar("OUTPUT3", bound=str | int)
+type OUTPUT = str | int | None
 
 
-class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
+class SolutionBase[
+    OUTPUT1: OUTPUT,
+    OUTPUT2: OUTPUT,
+    OUTPUT3: OUTPUT,
+](ABC):
     @unique
     class Part(Enum):
-
         PART_1 = "1"
         PART_2 = "2"
         PART_3 = "3"
@@ -104,7 +105,7 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
                 duration = colored(f"{self.duration_as_ms:.0f}", "red")
             return f"Part {self.part}: {answer}, took {duration} ms"
 
-    def __init__(self, year: int, day: int):
+    def __init__(self, year: int, day: int) -> None:
         self.quest = Quest(year, day)
         self.callables = {"1": self.part_1, "2": self.part_2, "3": self.part_3}
 
@@ -113,27 +114,27 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
         pass
 
     @abstractmethod
-    def part_1(self, input: InputData) -> OUTPUT1:
+    def part_1(self, input_data: InputData) -> OUTPUT1:
         pass
 
     @abstractmethod
-    def part_2(self, input: InputData) -> OUTPUT2:
+    def part_2(self, input_data: InputData) -> OUTPUT2:
         pass
 
     @abstractmethod
-    def part_3(self, input: InputData) -> OUTPUT3:
+    def part_3(self, input_data: InputData) -> OUTPUT3:
         pass
 
-    def run(self, main_args: list[str]) -> None:  # noqa E103
+    def run(self, main_args: list[str]) -> None:  # noqa:C901
         def execute_part(
             part: SolutionBase.Part, f: Callable[[InputData], Any]
         ) -> SolutionBase.PartExecution:
-            input = self.quest.get_input(part.int_value())
-            if input is None:
+            input_data = self.quest.get_input(part.int_value())
+            if input_data is None:
                 result = SolutionBase.PartExecution(part, no_input=True)
             else:
                 start = time.time()
-                answer = f(input)
+                answer = f(input_data)
                 result = SolutionBase.PartExecution(
                     part, answer, int((time.time() - start) * 1e9)
                 )
@@ -150,7 +151,7 @@ class SolutionBase(ABC, Generic[OUTPUT1, OUTPUT2, OUTPUT3]):
             ):
                 return (
                     f"Part {exec_part.part}:"
-                    + f" Expected: '{expected}', got: '{answer}'"
+                    f" Expected: '{expected}', got: '{answer}'"
                 )
             return ""
 
@@ -210,8 +211,8 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 
 def ec_samples(tests: tuple[tuple[str, str, Any], ...]) -> Callable[[F], F]:
-    def decorator(func: F) -> F:
-        def wrapper(*args: Any) -> Any:
+    def decorator(_: F) -> F:
+        def wrapper(*args: OUTPUT) -> None:
             _self = args[0]
             for test in tests:
                 func, _, expected = test
@@ -222,7 +223,7 @@ def ec_samples(tests: tuple[tuple[str, str, Any], ...]) -> Callable[[F], F]:
                 )
                 assert actual == expected, message
 
-        return cast(F, wrapper)
+        return cast("F", wrapper)
 
     return decorator
 
@@ -232,7 +233,7 @@ class Direction(Enum):
     x: int
     y: int
 
-    def __new__(cls, x: int, y: int) -> Direction:
+    def __new__(cls, x: int, y: int) -> Self:
         obj = object.__new__(cls)
         obj.x = x
         obj.y = y
@@ -274,28 +275,35 @@ class Direction(Enum):
             return (
                 Direction.DOWN
                 if turn == Turn.AROUND
-                else Direction.LEFT if turn == Turn.LEFT else Direction.RIGHT
+                else Direction.LEFT
+                if turn == Turn.LEFT
+                else Direction.RIGHT
             )
-        elif self == Direction.RIGHT:
+        if self == Direction.RIGHT:
             return (
                 Direction.LEFT
                 if turn == Turn.AROUND
-                else Direction.UP if turn == Turn.LEFT else Direction.DOWN
+                else Direction.UP
+                if turn == Turn.LEFT
+                else Direction.DOWN
             )
-        elif self == Direction.DOWN:
+        if self == Direction.DOWN:
             return (
                 Direction.UP
                 if turn == Turn.AROUND
-                else Direction.RIGHT if turn == Turn.LEFT else Direction.LEFT
+                else Direction.RIGHT
+                if turn == Turn.LEFT
+                else Direction.LEFT
             )
-        elif self == Direction.LEFT:
+        if self == Direction.LEFT:
             return (
                 Direction.RIGHT
                 if turn == Turn.AROUND
-                else Direction.DOWN if turn == Turn.LEFT else Direction.UP
+                else Direction.DOWN
+                if turn == Turn.LEFT
+                else Direction.UP
             )
-        else:
-            raise ValueError
+        raise ValueError
 
 
 @unique
@@ -305,7 +313,7 @@ class Direction3D(Enum):
     z: int
     letter: str
 
-    def __new__(cls, x: int, y: int, z: int, letter: str) -> Direction3D:
+    def __new__(cls, x: int, y: int, z: int, letter: str) -> Self:
         obj = object.__new__(cls)
         obj.x = x
         obj.y = y
@@ -375,7 +383,7 @@ class Position3D(NamedTuple):
 class Turn(Enum):
     letter: str
 
-    def __new__(cls, value: int, letter: str) -> Turn:
+    def __new__(cls, value: int, letter: str) -> Self:
         obj = object.__new__(cls)
         obj._value_ = value
         obj.letter = letter

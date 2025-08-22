@@ -26,9 +26,9 @@ C:A
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def solve(self, input: InputData, start: str, days: int) -> int:
+    def solve(self, input_data: InputData, start: str, days: int) -> int:
         life_cycles = dict[str, list[str]]()
-        for line in input:
+        for line in input_data:
             category, nxt_gen = line.split(":")
             life_cycles.setdefault(category, nxt_gen.split(","))
         buckets = defaultdict[str, int](int)
@@ -41,17 +41,17 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             buckets = new_buckets
         return sum(buckets.values())
 
-    def part_1(self, input: InputData) -> Output1:
-        return self.solve(input, start="A", days=4)
+    def part_1(self, input_data: InputData) -> Output1:
+        return self.solve(input_data, start="A", days=4)
 
-    def part_2(self, input: InputData) -> Output2:
-        return self.solve(input, start="Z", days=10)
+    def part_2(self, input_data: InputData) -> Output2:
+        return self.solve(input_data, start="Z", days=10)
 
-    def part_3(self, input: InputData) -> Output3:
+    def part_3(self, input_data: InputData) -> Output3:
         hi, lo = -sys.maxsize, sys.maxsize
-        for line in input:
+        for line in input_data:
             start, _ = line.split(":")
-            population = self.solve(input, start, days=20)
+            population = self.solve(input_data, start, days=20)
             hi = max(hi, population)
             lo = min(lo, population)
         return hi - lo

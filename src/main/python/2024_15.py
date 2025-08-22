@@ -43,16 +43,16 @@ TEST2 = """\
 class Solution(SolutionBase[Output1, Output2, Output3]):
     def solve(
         self,
-        input: tuple[str, ...],
+        input_data: tuple[str, ...],
         offset: int,
         width: int,
         start: tuple[int, int],
     ) -> int:
-        height = len(input)
+        height = len(input_data)
         complete = 0
         for r in range(height):
             for c in range(width):
-                v = input[r][offset + c]
+                v = input_data[r][offset + c]
                 if v.isalpha():
                     complete |= 1 << (ord(v) - ord("A"))
 
@@ -61,13 +61,13 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             return herbs == complete and (r, c) == start
 
         def adjacent(
-            node: tuple[int, int, int]
+            node: tuple[int, int, int],
         ) -> Iterator[tuple[int, int, int]]:
             r, c, herbs = node
             for d in Direction.capitals():
                 n_r, n_c = r + d.y, c + d.x
                 if 0 <= n_r < height and 0 <= n_c < width:
-                    v = input[n_r][offset + n_c]
+                    v = input_data[n_r][offset + n_c]
                     if v in {"#", "~"}:
                         continue
                     n_herbs = herbs
@@ -77,37 +77,37 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
 
         return bfs((*start, 0), is_end, adjacent)
 
-    def part_1(self, input: InputData) -> Output1:
-        width = len(input[0])
-        return self.solve(input, 0, width, start=(0, width // 2))
+    def part_1(self, input_data: InputData) -> Output1:
+        width = len(input_data[0])
+        return self.solve(input_data, 0, width, start=(0, width // 2))
 
-    def part_2(self, input: InputData) -> Output2:
-        width = len(input[0])
-        return self.solve(input, 0, width, start=(0, width // 2))
+    def part_2(self, input_data: InputData) -> Output2:
+        width = len(input_data[0])
+        return self.solve(input_data, 0, width, start=(0, width // 2))
 
-    def part_3(self, input: InputData) -> Output3:
-        width = len(input[0]) // 3
-        height = len(input)
-        input = tuple(
+    def part_3(self, input_data: InputData) -> Output3:
+        width = len(input_data[0]) // 3
+        height = len(input_data)
+        input_data = tuple(
             line.replace("K", "X", 1) if i == height - 2 else line
-            for i, line in enumerate(input)
+            for i, line in enumerate(input_data)
         )
         ans = multiprocessing.Manager().dict()
 
         def left() -> None:
             offset = 0
             start = (height - 2, width - 1)
-            ans["left"] = self.solve(input, offset, width, start) + 1
+            ans["left"] = self.solve(input_data, offset, width, start) + 1
 
         def right() -> None:
             offset = 2 * width
             start = (height - 2, 0)
-            ans["right"] = self.solve(input, offset, width, start) + 1
+            ans["right"] = self.solve(input_data, offset, width, start) + 1
 
         def middle() -> None:
             offset = width
             start = (0, width // 2)
-            ans["middle"] = self.solve(input, offset, width, start) + 6
+            ans["middle"] = self.solve(input_data, offset, width, start) + 6
 
         if sys.platform.startswith("win"):
             left()

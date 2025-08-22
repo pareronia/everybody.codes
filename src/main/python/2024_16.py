@@ -37,12 +37,14 @@ TEST2 = """\
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def parse(self, input: InputData) -> tuple[tuple[int, ...], list[int]]:
-        steps = tuple(map(int, input[0].split(",")))
+    def parse(
+        self, input_data: InputData
+    ) -> tuple[tuple[int, ...], list[int]]:
+        steps = tuple(map(int, input_data[0].split(",")))
         sizes = list[int]()
         for i in range(len(steps)):
             j = 0
-            while 2 + j < len(input) and input[2 + j][i * 4] != " ":
+            while 2 + j < len(input_data) and input_data[2 + j][i * 4] != " ":
                 j += 1
             sizes.append(j)
         return steps, sizes
@@ -52,34 +54,35 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
     ) -> tuple[int, ...]:
         return tuple((amount * s) % sizes[i] for i, s in enumerate(steps))
 
-    def sequence(self, input: InputData, pos: tuple[int, ...]) -> str:
+    def sequence(self, input_data: InputData, pos: tuple[int, ...]) -> str:
         return " ".join(
-            input[2 + p][i * 4 : i * 4 + 3]  # noqa E203
-            for i, p in enumerate(pos)
+            input_data[2 + p][i * 4 : i * 4 + 3] for i, p in enumerate(pos)
         )
 
     def score(self, sequence: str) -> int:
         ctr = Counter(ch for i, ch in enumerate(sequence) if i % 2 != 1)
         return sum(v - 2 for v in ctr.values() if v >= 3)
 
-    def part_1(self, input: InputData) -> Output1:
-        steps, sizes, pulls = *self.parse(input), 100
-        return self.sequence(input, self.positions(sizes, steps, pulls))
+    def part_1(self, input_data: InputData) -> Output1:
+        steps, sizes, pulls = *self.parse(input_data), 100
+        return self.sequence(input_data, self.positions(sizes, steps, pulls))
 
-    def part_2(self, input: InputData) -> Output2:
-        steps, sizes, pulls = *self.parse(input), 202_420_242_024
+    def part_2(self, input_data: InputData) -> Output2:
+        steps, sizes, pulls = *self.parse(input_data), 202_420_242_024
         lcm = math.lcm(*sizes)
         cycles, rest = divmod(pulls, lcm)
         score_lcm = 0
         for i in range(1, lcm + 1):
-            sequence = self.sequence(input, self.positions(sizes, steps, i))
+            sequence = self.sequence(
+                input_data, self.positions(sizes, steps, i)
+            )
             score_lcm += self.score(sequence)
             if i == rest:
                 score_rest = score_lcm
         return score_lcm * cycles + score_rest
 
-    def part_3(self, input: InputData) -> Output3:
-        steps, sizes, pulls = *self.parse(input), 256
+    def part_3(self, input_data: InputData) -> Output3:
+        steps, sizes, pulls = *self.parse(input_data), 256
 
         @cache
         def scores(left_lever: int, pull: int) -> tuple[int, int]:
@@ -90,7 +93,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                     (step * pull + left_lever) % sizes[i]
                     for i, step in enumerate(steps)
                 )
-                score = self.score(self.sequence(input, new_pos))
+                score = self.score(self.sequence(input_data, new_pos))
                 min_score, max_score = score, score
             if pulls - pull > 0:
                 min_max = [

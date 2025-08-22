@@ -1,50 +1,52 @@
 import json
 import os
 import sys
-
-from .api import API
+from pathlib import Path
 
 from . import EVERYBODY_CODES_DIR
 from . import EVERYBODY_CODES_TOKEN
+from .api import API
 
 
-def get_everybody_codes_dir() -> str:
+def get_everybody_codes_dir() -> Path:
     if EVERYBODY_CODES_DIR in os.environ:
-        return os.environ[EVERYBODY_CODES_DIR]
+        return Path(os.environ[EVERYBODY_CODES_DIR])
     if sys.platform.startswith("win"):
-        return os.path.join(os.environ["APPDATA"], "everybody.codes")
+        return Path(os.environ["APPDATA"]) / "everybody.codes"
     if sys.platform.startswith("linux"):
-        return os.path.join(os.environ["HOME"], ".config", "everybody.codes")
-    raise RuntimeError("OS not supported")
+        return Path(os.environ["HOME"]) / ".config" / "everybody.codes"
+    msg = "OS not supported"
+    raise RuntimeError(msg)
 
 
 def get_token() -> str:
     if EVERYBODY_CODES_TOKEN in os.environ:
         return os.environ[EVERYBODY_CODES_TOKEN]
-    file = os.path.join(get_everybody_codes_dir(), "token")
+    file = get_everybody_codes_dir() / "token"
     return read_lines_from_file(file)[0]
 
 
 def get_user_id(token: str) -> str:
-    file = os.path.join(get_everybody_codes_dir(), "token2id.json")
-    with open(file, "r", encoding="utf-8") as f:
+    file = get_everybody_codes_dir() / "token2id.json"
+    with file.open("r", encoding="utf-8") as f:
         ids = json.load(f)
     return str(ids[token])
 
 
-def get_memo_dir() -> str:
-    return os.path.join(get_everybody_codes_dir(), get_user_id(get_token()))
+def get_memo_dir() -> Path:
+    return get_everybody_codes_dir() / get_user_id(get_token())
 
 
 def get_part_string(part: int) -> str:
     if part not in {1, 2, 3}:
-        raise ValueError("part should be 1, 2 or 3")
+        msg = "part should be 1, 2 or 3"
+        raise ValueError(msg)
     return "a" if part == 1 else "b" if part == 2 else "c"
 
 
-def get_input_file(year: int, day: int, part: int) -> str:
+def get_input_file(year: int, day: int, part: int) -> Path:
     p = get_part_string(part)
-    return os.path.join(get_memo_dir(), f"{year}_{day:02}{p}_input.txt")
+    return get_memo_dir() / f"{year}_{day:02}{p}_input.txt"
 
 
 def download_input(year: int, day: int, part: int) -> str | None:
@@ -53,17 +55,17 @@ def download_input(year: int, day: int, part: int) -> str | None:
 
 def get_input(year: int, day: int, part: int) -> tuple[str, ...] | None:
     file = get_input_file(year, day, part)
-    if not os.path.exists(file):
-        input = download_input(year, day, part)
-        if input is None:
+    if not file.exists():
+        input_data = download_input(year, day, part)
+        if input_data is None:
             return None
-        write_text_to_file(file, input)
+        write_text_to_file(file, input_data)
     return tuple(_ for _ in read_lines_from_file(file))
 
 
-def get_answer_file(year: int, day: int, part: int) -> str:
+def get_answer_file(year: int, day: int, part: int) -> Path:
     p = get_part_string(part)
-    return os.path.join(get_memo_dir(), f"{year}_{day:02}{p}_answer.txt")
+    return get_memo_dir() / f"{year}_{day:02}{p}_answer.txt"
 
 
 def download_answer(year: int, day: int, part: int) -> str | None:
@@ -72,7 +74,7 @@ def download_answer(year: int, day: int, part: int) -> str | None:
 
 def get_answer(year: int, day: int, part: int) -> str | None:
     file = get_answer_file(year, day, part)
-    if not os.path.exists(file):
+    if not file.exists():
         answer = download_answer(year, day, part)
         if answer is None:
             return None
@@ -83,10 +85,8 @@ def get_answer(year: int, day: int, part: int) -> str | None:
     return lines[0]
 
 
-def get_title_file(year: int, day: int) -> str:
-    return os.path.join(
-        get_everybody_codes_dir(), "titles", f"{year}_{day:02}.txt"
-    )
+def get_title_file(year: int, day: int) -> Path:
+    return get_everybody_codes_dir() / "titles" / f"{year}_{day:02}.txt"
 
 
 def download_title(year: int, day: int) -> str | None:
@@ -95,7 +95,7 @@ def download_title(year: int, day: int) -> str | None:
 
 def get_title(year: int, day: int) -> str | None:
     file = get_title_file(year, day)
-    if not os.path.exists(file):
+    if not file.exists():
         title = download_title(year, day)
         if title is None:
             return None
@@ -103,13 +103,13 @@ def get_title(year: int, day: int) -> str | None:
     return read_lines_from_file(file)[0]
 
 
-def read_lines_from_file(file: str) -> list[str]:
-    with open(file, "r", encoding="utf-8") as f:
+def read_lines_from_file(file: Path) -> list[str]:
+    with file.open("r", encoding="utf-8") as f:
         data = f.read()
     return data.rstrip("\r\n").splitlines()
 
 
-def write_text_to_file(file: str, text: str) -> None:
-    os.makedirs(os.path.dirname(file), exist_ok=True)
-    with open(file, "w", encoding="utf-8") as f:
+def write_text_to_file(file: Path, text: str) -> None:
+    file.parent.mkdir(exist_ok=True)
+    with file.open("w", encoding="utf-8") as f:
         f.write(text)

@@ -28,31 +28,31 @@ TEST = """\
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def solve(self, input: InputData, dirs: set[Direction]) -> Output1:
+    def solve(self, input_data: InputData, dirs: set[Direction]) -> Output1:
         cubes = {
             Cell(r, c): 1
-            for r in range(len(input))
-            for c in range(len(input[0]))
-            if input[r][c] == "#"
+            for r in range(len(input_data))
+            for c in range(len(input_data[0]))
+            if input_data[r][c] == "#"
         }
         while True:
             new_cubes = dict[Cell, int]()
             for cell, v in cubes.items():
-                if all(cubes.get(cell.at(dir), 0) == v for dir in dirs):
+                if all(cubes.get(cell.at(d), 0) == v for d in dirs):
                     new_cubes[cell] = v + 1
             if len(new_cubes) == 0:
                 break
             cubes.update(new_cubes)
         return sum(cubes.values())
 
-    def part_1(self, input: InputData) -> Output1:
-        return self.solve(input, Direction.capitals())
+    def part_1(self, input_data: InputData) -> Output1:
+        return self.solve(input_data, Direction.capitals())
 
-    def part_2(self, input: InputData) -> Output2:
-        return self.solve(input, Direction.capitals())
+    def part_2(self, input_data: InputData) -> Output2:
+        return self.solve(input_data, Direction.capitals())
 
-    def part_3(self, input: InputData) -> Output3:
-        return self.solve(input, Direction.octants())
+    def part_3(self, input_data: InputData) -> Output3:
+        return self.solve(input_data, Direction.octants())
 
     @ec_samples(
         (

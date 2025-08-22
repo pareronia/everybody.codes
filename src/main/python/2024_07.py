@@ -49,7 +49,7 @@ TRACK3 = [
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def get_track(self, input: list[str]) -> str:
+    def get_track(self, input_data: list[str]) -> str:
         _, path = bfs_path(
             Cell(0, 1),
             lambda cell: cell.row == 1 and cell.col == 0,
@@ -57,19 +57,22 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                 n
                 for n in cell.get_capital_neighbours()
                 if n.row >= 0
-                and n.row < len(input)
+                and n.row < len(input_data)
                 and n.col >= 0
-                and n.col < len(input[0])
-                and input[n.row][n.col] in {"+", "-", "="}
+                and n.col < len(input_data[0])
+                and input_data[n.row][n.col] in {"+", "-", "="}
             ),
         )
-        return "".join(input[cell.row][cell.col] for cell in path[::-1]) + "S"
+        return (
+            "".join(input_data[cell.row][cell.col] for cell in path[::-1])
+            + "S"
+        )
 
     def run_race(
-        self, input: list[tuple[str, list[str]]], track: str, loops: int
+        self, input_data: list[tuple[str, list[str]]], track: str, loops: int
     ) -> dict[str, list[int]]:
         d = defaultdict[str, list[int]](list)
-        for line in input:
+        for line in input_data:
             k, plan = line
             d[k] = [10]
             actions = itertools.cycle(plan)
@@ -82,9 +85,9 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                     )
         return d
 
-    def ranked(self, input: InputData, track: str) -> str:
+    def ranked(self, input_data: InputData, track: str) -> str:
         plans = []
-        for line in input:
+        for line in input_data:
             k, rest = line.split(":")
             plans.append((k, rest.split(",")))
         d = self.run_race(plans, track, 10)
@@ -96,30 +99,31 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             )
         )
 
-    def part_1(self, input: InputData) -> Output1:
-        return self.ranked(input, TRACK1)
+    def part_1(self, input_data: InputData) -> Output1:
+        return self.ranked(input_data, TRACK1)
 
-    def part_2(self, input: InputData) -> Output2:
-        return self.ranked(input, self.get_track(TRACK2))
+    def part_2(self, input_data: InputData) -> Output2:
+        return self.ranked(input_data, self.get_track(TRACK2))
 
-    def part_3(self, input: InputData) -> Output3:
-        """https://old.reddit.com/r/everybodycodes/comments/1gpylzn/2024_q7_solution_spotlight/lwurl8x/
+    def part_3(self, input_data: InputData) -> Output3:
+        """https://old.reddit.com/r/everybodycodes/comments/1gpylzn/2024_q7_solution_spotlight/lwurl8x/.
+
         If each 11 laps results in the same increase in power and essence
-        then we can multiple a shorter race of 11 laps by 184 to get the answer faster
-        """  # noqa E501
+        then we can multiple a shorter race of 11 laps by 184 to get the answer
+        faster
+        """
         track = self.get_track(TRACK3)
-        k, plan = input[0].split(":")
+        k, plan = input_data[0].split(":")
         d = self.run_race([(k, plan.split(","))], track, 11)
         rival = sum(d["A"][1:])
-        strategies = {
-            _
-            for _ in itertools.permutations(
+        strategies = set(
+            itertools.permutations(
                 ["+", "-", "=", "+", "-", "=", "+", "-", "=", "+", "+"]
             )
-        }
+        )
         ans = 0
         for s in strategies:
-            d = self.run_race([("A", s)], track, 11)
+            d = self.run_race([("A", list(s))], track, 11)
             if sum(d["A"][1:]) > rival:
                 ans += 1
         return ans

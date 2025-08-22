@@ -4,7 +4,7 @@
 #
 
 import sys
-from typing import Iterable
+from collections.abc import Iterable
 
 from ec.common import InputData
 from ec.common import SolutionBase
@@ -35,7 +35,10 @@ TEST3 = """\
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
     def solve(
-        self, input: Iterable[int], stamps: list[int], memo: dict[int, int]
+        self,
+        input_data: Iterable[int],
+        stamps: list[int],
+        memo: dict[int, int],
     ) -> list[int]:
         def beetles(brightness: int) -> int:
             if brightness < 0:
@@ -50,26 +53,26 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             memo[brightness] = best
             return best
 
-        return [beetles(n) for n in input]
+        return [beetles(n) for n in input_data]
 
-    def part_1(self, input: InputData) -> Output1:
+    def part_1(self, input_data: InputData) -> Output1:
         stamps = [10, 5, 3, 1]
         memo = dict[int, int]()
-        return sum(b for b in self.solve(map(int, input), stamps, memo))
+        return sum(b for b in self.solve(map(int, input_data), stamps, memo))
 
-    def part_2(self, input: InputData) -> Output2:
+    def part_2(self, input_data: InputData) -> Output2:
         stamps = [1, 3, 5, 10, 15, 16, 20, 24, 25, 30]
         stamps.reverse()
         memo = dict[int, int]()
-        return sum(b for b in self.solve(map(int, input), stamps, memo))
+        return sum(b for b in self.solve(map(int, input_data), stamps, memo))
 
-    def part_3(self, input: InputData) -> Output3:
+    def part_3(self, input_data: InputData) -> Output3:
         stamps = [1, 3, 5, 10, 15, 16, 20, 24, 25]
         stamps.extend([30, 37, 38, 49, 50, 74, 75, 100, 101])
         stamps.reverse()
         memo = dict[int, int]()
         ans = 0
-        for brightness in map(int, input):
+        for brightness in map(int, input_data):
             ans_b = sys.maxsize
             b1 = brightness // 2
             b2 = brightness - b1
