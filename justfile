@@ -1,3 +1,5 @@
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+
 alias l := lint
 
 source_dir := join(".", "src", "main", "python")
@@ -5,11 +7,13 @@ java_source_dir := join(".", "src", "main", "java")
 java_path := "com/github/pareronia/everybody_codes"
 
 java := "java"
-mypy := "uvx mypy"
-python := "PYTHONOPTIMIZE=1 PYTHONPATH=src/main/python/ uv run"
-python_debug := "PYTHONPATH=src/main/python/ uv run"
+mypy := if os_family() == "windows" { "uvx mypy --python-executable='.venv\\Scripts\\python'" } else { "uvx mypy --python-executable='.venv/bin/python'" }
+python := "uv run python -O"
+python_debug := "uv run python"
 ruff := "uvx ruff"
 vulture := "uvx vulture"
+
+export PYTHONPATH := join(".", "src", "main", "python")
 
 default:
     @just --choose

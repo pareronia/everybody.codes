@@ -27,7 +27,6 @@ include_trailing_comma = true
 
 [tool.mypy]
 strict = true
-python_executable = "$VIRTUAL_ENV/bin/python3"
 
 [[tool.mypy.overrides]]
 module = "prettyprinter.*"
