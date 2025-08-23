@@ -6,8 +6,10 @@ source_dir := join(".", "src", "main", "python")
 java_source_dir := join(".", "src", "main", "java")
 java_path := "com/github/pareronia/everybody_codes"
 
+google-java-format := "google-java-format"
 java := "java"
 mypy := if os_family() == "windows" { "uvx mypy --python-executable='.venv\\Scripts\\python'" } else { "uvx mypy --python-executable='.venv/bin/python'" }
+pmd := "pmd"
 python := "uv run python -O"
 python_debug := "uv run python"
 ruff := "uvx ruff"
@@ -57,9 +59,32 @@ mypy:
     @echo "Running mypy"
     @{{mypy}} --no-error-summary {{source_dir}}
 
+# Linting: pmd
+[group("linting")]
+pmd:
+    @echo "Running pmd check"
+    @{{pmd}} check --rulesets=pmd-ruleset.xml --format=textcolor --dir="{{java_source_dir}}"
+
+# Linting: java format check
+[group("linting")]
+java-format-check:
+    #!/usr/bin/env -S uv run --script
+    print("Running java format check")
+
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    files = " ".join(map(str, list(Path("{{java_source_dir}}").rglob("*.java"))))
+    completed = subprocess.run(
+        ["{{google-java-format}}", "--aosp", "--dry-run", "--set-exit-if-changed", files],
+        check=False
+    )
+    sys.exit(completed.returncode)
+
 # Linting: all
 [group("linting")]
-lint: ruff-check vulture ruff-format-check mypy
+lint: ruff-check vulture ruff-format-check mypy java-format-check pmd
 
 # Run all Quests - python
 [group("python")]
