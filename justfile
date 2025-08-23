@@ -1,21 +1,24 @@
-set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+set dotenv-filename := ".win-env"
 
 alias l := lint
 
-source_dir := join(".", "src", "main", "python")
-java_source_dir := join(".", "src", "main", "java")
+source_dir := "src/main/python"
+java_source_dir := "src/main/java"
 java_path := "com/github/pareronia/everybody_codes"
 
-google-java-format := "google-java-format"
-java := "java"
-mypy := if os_family() == "windows" { "uvx mypy --python-executable='.venv\\Scripts\\python'" } else { "uvx mypy --python-executable='.venv/bin/python'" }
+google-java-format := env("GOOGLE_JAVA_FORMAT_CMD", "google-java-format")
+java := env("JAVA_CMD", "java")
+mypy := if os_family() == "windows" \
+            { "uvx mypy --python-executable='.venv\\Scripts\\python'" } \
+        else \
+            { "uvx mypy --python-executable='.venv/bin/python'" }
 pmd := "pmd"
 python := "uv run python -O"
 python_debug := "uv run python"
 ruff := "uvx ruff"
 vulture := "uvx vulture"
 
-export PYTHONPATH := join(".", "src", "main", "python")
+export PYTHONPATH := "src/main/python"
 
 default:
     @just --choose
@@ -77,7 +80,7 @@ java-format-check:
 
     files = " ".join(map(str, list(Path("{{java_source_dir}}").rglob("*.java"))))
     completed = subprocess.run(
-        ["{{google-java-format}}", "--aosp", "--dry-run", "--set-exit-if-changed", files],
+        "{{google-java-format}}".split() + ["--aosp", "--dry-run", "--set-exit-if-changed", files],
         check=False
     )
     sys.exit(completed.returncode)
