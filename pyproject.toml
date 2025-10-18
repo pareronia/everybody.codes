@@ -32,6 +32,10 @@ strict = true
 module = "prettyprinter.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "termcolor.*"
+ignore_missing_imports = true
+
 [tool.pylsp-mypy]
 enabled = true
 
