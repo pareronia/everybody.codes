@@ -24,17 +24,17 @@ default:
     @just --choose
 
 [group("vim")]
-vim-file-run-dev file $LOGLEVEL="DEBUG":
+vim-file-run-dev file $LOGLEVEL="DEBUG" *type:
     @echo {{CLEAR}}
     @{{python_debug}} "{{file}}"
 
 [group("vim")]
-vim-file-run file:
+vim-file-run file *type:
     @echo {{CLEAR}}
     @{{python}} "{{file}}"
 
 [group("vim")]
-vim-file-debug file:
+vim-file-debug file *type:
     @echo {{CLEAR}}
     @{{python_debug}} -m pdb "{{file}}"
 
