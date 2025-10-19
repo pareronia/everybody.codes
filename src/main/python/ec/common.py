@@ -15,6 +15,7 @@ from typing import Self
 from typing import TypeVar
 from typing import cast
 
+import prettyprinter
 from ec import calendar
 from prettyprinter import cpprint
 from termcolor import colored
@@ -195,6 +196,7 @@ class SolutionBase[
 
         print_header()
         if __debug__:
+            prettyprinter.install_extras(include=["dataclasses"])
             self.samples()
         exec_parts = [
             execute_part(self.Part.from_str(part), self.callables[part])
