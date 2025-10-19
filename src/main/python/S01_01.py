@@ -4,11 +4,13 @@
 #
 
 import sys
+from enum import Enum
+from enum import auto
+from enum import unique
 
 from ec.common import InputData
 from ec.common import SolutionBase
 from ec.common import ec_samples
-from ec.common import log
 
 Output1 = int
 Output2 = int
@@ -47,84 +49,72 @@ A=8 B=8 C=8 X=6000 Y=19000 Z=16000 M=160
 """
 
 
-class Solution(SolutionBase[Output1, Output2, Output3]):
-    def part_1(self, input_data: InputData) -> Output1:
-        def eni(n: int, exp: int, mod: int) -> int:
-            ans = list[int]()
-            num = 1
-            d = n % mod
-            for _ in range(exp):
-                num *= d
-                num = num % mod
-                ans.append(num)
-            return int("".join(str(_) for _ in reversed(ans)))
+@unique
+class EniMode(Enum):
+    MODE_1 = auto()
+    MODE_2 = auto()
+    MODE_3 = auto()
 
+    def eni(self, n: int, exp: int, mod: int) -> int:
+        match self:
+            case EniMode.MODE_1:
+                ans = list[int]()
+                d = n % mod
+                num = 1
+                for _ in range(exp):
+                    num *= d
+                    num = num % mod
+                    ans.append(num)
+                return int("".join(str(_) for _ in reversed(ans)))
+            case EniMode.MODE_2:
+                ans = list[int]()
+                d = n % mod
+                num = pow(n, exp - 5, mod) if exp > 5 else 1
+                for _ in range(min(exp, 5)):
+                    num *= d
+                    num = num % mod
+                    ans.append(num)
+                return int("".join(str(_) for _ in reversed(ans[-6:])))
+            case EniMode.MODE_3:
+                remainder = 1
+                total = 0
+                seen = dict[int, tuple[int, int]]()
+                i = 0
+                while i < exp:
+                    remainder = (remainder * n) % mod
+                    total += remainder
+                    i += 1
+                    if remainder in seen:
+                        s = seen[remainder]
+                        period = i - s[0]
+                        amount = total - s[1]
+                        cycles = (exp - i) // period
+                        total += cycles * amount
+                        i += cycles * period
+                    seen[remainder] = (i, total)
+                return total
+
+
+class Solution(SolutionBase[Output1, Output2, Output3]):
+    def solve(self, input_data: InputData, mode: EniMode) -> int:
         ans = -sys.maxsize
         for line in input_data:
-            splits = line.split()
             a, b, c, x, y, z, m = map(
-                int, (split.split("=")[1] for split in splits)
+                int, (split.split("=")[1] for split in line.split())
             )
-            tmp = eni(a, x, m) + eni(b, y, m) + eni(c, z, m)
-            log(tmp)
-            ans = max(ans, tmp)
+            ans = max(
+                ans, mode.eni(a, x, m) + mode.eni(b, y, m) + mode.eni(c, z, m)
+            )
         return ans
+
+    def part_1(self, input_data: InputData) -> Output1:
+        return self.solve(input_data, mode=EniMode.MODE_1)
 
     def part_2(self, input_data: InputData) -> Output2:
-        def eni(n: int, exp: int, mod: int) -> int:
-            ans = list[int]()
-            d = n % mod
-            log((f"{n=}", f"{d=}", f"{exp=}"))
-            num = pow(n, exp - 5, mod) if exp > 5 else 1
-            log(f"{num=}")
-            for _ in range(min(exp, 5)):
-                num *= d
-                num = num % mod
-                log(f"remainder={num}")
-                ans.append(num)
-            return int("".join(str(_) for _ in reversed(ans[-6:])))
-
-        ans = -sys.maxsize
-        for line in input_data:
-            splits = line.split()
-            a, b, c, x, y, z, m = map(
-                int, (split.split("=")[1] for split in splits)
-            )
-            tmp = eni(a, x, m) + eni(b, y, m) + eni(c, z, m)
-            log(tmp)
-            ans = max(ans, tmp)
-        return ans
+        return self.solve(input_data, mode=EniMode.MODE_2)
 
     def part_3(self, input_data: InputData) -> Output3:
-        def eni(n: int, exp: int, mod: int) -> int:
-            remainder = 1
-            total = 0
-            seen = dict[int, tuple[int, int]]()
-            i = 0
-            while i < exp:
-                remainder = (remainder * n) % mod
-                total += remainder
-                i += 1
-                if remainder in seen:  # and n > mod:
-                    s = seen[remainder]
-                    period = i - s[0]
-                    amount = total - s[1]
-                    cycles = (exp - i) // period
-                    total += cycles * amount
-                    i += cycles * period
-                seen[remainder] = (i, total)
-            return total
-
-        ans = -sys.maxsize
-        for line in input_data:
-            splits = line.split()
-            a, b, c, x, y, z, m = map(
-                int, (split.split("=")[1] for split in splits)
-            )
-            tmp = eni(a, x, m) + eni(b, y, m) + eni(c, z, m)
-            log(tmp)
-            ans = max(ans, tmp)
-        return ans
+        return self.solve(input_data, mode=EniMode.MODE_3)
 
     @ec_samples(
         (
