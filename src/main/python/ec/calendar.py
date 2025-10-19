@@ -26,6 +26,7 @@ OFFSET = {
     2: -23,
     1: -24,
 }
+STORIES = {1, 2}
 
 
 def now() -> datetime:
@@ -46,8 +47,10 @@ def days(year: int) -> dict[int, datetime]:
     }
 
 
-def is_released(year: int, day: int) -> bool:
-    return now() > days(year)[day]
+def is_released(event: int, day: int) -> bool:
+    return (valid_story(event)) or (
+        valid_year(event) and now() > days(event)[day]
+    )
 
 
 def contest_started(year: int) -> bool:
@@ -56,3 +59,7 @@ def contest_started(year: int) -> bool:
 
 def valid_year(year: int) -> bool:
     return 2024 <= year <= now().year
+
+
+def valid_story(story: int) -> bool:
+    return story in STORIES

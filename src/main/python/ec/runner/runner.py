@@ -1,15 +1,13 @@
 import importlib
 from argparse import ArgumentParser
 
-from ec.calendar import days
-from ec.calendar import now
-from ec.calendar import valid_year
+from ec import calendar
 
 
 class Runner:
-    def run(self, year: int, quest: int) -> None:
+    def run(self, event: str, quest: int) -> None:
         try:
-            quest_mod = importlib.import_module(f"{year}_{quest:0>2}")
+            quest_mod = importlib.import_module(f"{event}_{quest:0>2}")
             quest_mod.solution.run([])
         except ModuleNotFoundError:
             return
@@ -24,7 +22,7 @@ class Runner:
             "--quest",
             type=int,
             nargs=2,
-            help="Year and quest to run.",
+            help="Year/Story and quest to run.",
         )
         parser.add_argument(
             "-a",
@@ -34,13 +32,19 @@ class Runner:
         )
         args = parser.parse_args(main_args)
         if args.all:
-            quests = list[tuple[int, int]]()
-            year = now().year
-            while valid_year(year):
-                for day in days(year):
-                    quests.append((year, day))
+            quests = list[tuple[str, int]]()
+            year = calendar.now().year
+            while calendar.valid_year(year):
+                for day in calendar.days(year):
+                    quests.append((str(year), day))
                 year -= 1
-            for year, quest in sorted(quests):
-                self.run(year, quest)
-        else:
-            self.run(*args.quest)
+            story = 1
+            while calendar.valid_story(story):
+                quests.append((f"S{story:0>2}", day))
+                story += 1
+            for event, quest in sorted(quests):
+                self.run(event, quest)
+        elif calendar.valid_year(args.quest[0]):
+            self.run(str(args.quest[0]), args.quest[1])
+        elif calendar.valid_story(args.quest[0]):
+            self.run(f"S{args.quest[0]:0>2}", args.quest[1])

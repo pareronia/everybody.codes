@@ -106,7 +106,7 @@ run-java year quest:
 
 # Stats
 [group("admin")]
-stats year:
+stats *year:
     @{{python}} -m ec.stats {{year}}
 
 # Implementation table

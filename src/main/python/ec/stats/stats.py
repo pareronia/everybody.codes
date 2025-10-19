@@ -1,10 +1,8 @@
 from datetime import timedelta
 from typing import NamedTuple
 
+from ec import calendar
 from ec.api import API
-from ec.calendar import contest_started
-from ec.calendar import now
-from ec.calendar import valid_year
 from ec.memo import get_title as memo_get_title
 from ec.memo import get_token as memo_get_token
 
@@ -12,7 +10,7 @@ Part = tuple[int, int, int]
 
 
 class PartStats(NamedTuple):
-    year: int
+    event: int
     day: int
     part: int
     global_time: int
@@ -35,20 +33,20 @@ class PartStats(NamedTuple):
 
 
 class QuestStats(NamedTuple):
-    year: int
+    event: int
     day: int
     completed_1: int
     completed_2: int
     completed_3: int
 
 
-def get_user_stats(year: int) -> dict[Part, PartStats]:
-    stats = API(memo_get_token()).get_user_stats(year)
+def get_user_stats(event: int) -> dict[Part, PartStats]:
+    stats = API(memo_get_token()).get_user_stats(event)
     ans = dict[Part, PartStats]()
     for quest in stats:
         for part in stats[quest]:
-            ans[(year, quest, part)] = PartStats(
-                year=year,
+            ans[(event, quest, part)] = PartStats(
+                event=event,
                 day=quest,
                 part=part,
                 global_time=stats[quest][part].global_time,
@@ -59,12 +57,12 @@ def get_user_stats(year: int) -> dict[Part, PartStats]:
     return ans
 
 
-def get_quest_stats(year: int) -> dict[int, QuestStats]:
-    stats = API(memo_get_token()).get_quest_stats(year)
+def get_quest_stats(event: int) -> dict[int, QuestStats]:
+    stats = API(memo_get_token()).get_quest_stats(event)
     ans = dict[int, QuestStats]()
     for quest in stats:
         ans[quest] = QuestStats(
-            year=year,
+            event=event,
             day=quest,
             completed_1=stats[quest][1],
             completed_2=stats[quest][2],
@@ -75,27 +73,27 @@ def get_quest_stats(year: int) -> dict[int, QuestStats]:
 
 def main(args: list[str]) -> None:
     if len(args) == 0:
-        year = now().year
-        if contest_started(year):
-            print_year(year)
+        year = calendar.now().year
+        if calendar.contest_started(year):
+            print_event(year)
         else:
             msg = "No year provided"
             raise ValueError(msg)
     elif len(args) == 1:
-        year = int(args[0])
-        if valid_year(year):
-            print_year(year)
+        event = int(args[0])
+        if calendar.valid_year(event) or calendar.valid_story(event):
+            print_event(event)
         else:
-            msg = "Invalid year provided"
+            msg = "Invalid event provided"
             raise ValueError(msg)
     else:
         msg = "Too many arguments"
         raise ValueError(msg)
 
 
-def print_year(year: int) -> None:
-    user_stats = get_user_stats(year)
-    quest_stats = get_quest_stats(year)
+def print_event(event: int) -> None:
+    user_stats = get_user_stats(event)
+    quest_stats = get_quest_stats(event)
     finished = f"{len(user_stats)}/60"
     total = sum(s.score for s in user_stats.values())
     wd, wp, ws = 34, 23, 15
@@ -107,16 +105,16 @@ def print_year(year: int) -> None:
 
     def time(day: int, part: int) -> str:
         return (
-            user_stats[(year, day, part)].global_timedelta_str
-            if (year, day, part) in user_stats
+            user_stats[(event, day, part)].global_timedelta_str
+            if (event, day, part) in user_stats
             else "--:--"
         )
 
     def rank(day: int, part: int) -> str:
         return (
             (
-                str(user_stats[(year, day, part)].place)
-                if (year, day, part) in user_stats
+                str(user_stats[(event, day, part)].place)
+                if (event, day, part) in user_stats
                 else "-"
             ).rjust(4)
             + "/"
@@ -125,8 +123,8 @@ def print_year(year: int) -> None:
 
     def score(day: int, part: int) -> str:
         return (
-            str(user_stats[(year, day, part)].score)
-            if (year, day, part) in user_stats
+            str(user_stats[(event, day, part)].score)
+            if (event, day, part) in user_stats
             else "-"
         )
 
@@ -134,7 +132,7 @@ def print_year(year: int) -> None:
     print()
     days = {d for _, d, _ in user_stats}
     for day in sorted(days):
-        day_title = memo_get_title(year, day)
+        day_title = memo_get_title(event, day)
         title = f"{day:2} {day_title}".ljust(wd - 1)[: wd - 1] + ":"
         parts = "".join(
             (f"{time(day, p)} {rank(day, p)}").rjust(wp) for p in range(1, 4)

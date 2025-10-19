@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations  # noqa:I001
 
 import argparse
 import os
@@ -15,12 +15,12 @@ from typing import Self
 from typing import TypeVar
 from typing import cast
 
+from ec import calendar
 from prettyprinter import cpprint
 from termcolor import colored
 
 from .api import API
 from .api import SubmitResponseFormatter
-from .calendar import is_released
 from .memo import get_answer as memo_get_answer
 from .memo import get_input as memo_get_input
 from .memo import get_title as memo_get_title
@@ -38,21 +38,21 @@ def log(msg: object) -> None:
 
 
 class Quest:
-    def __init__(self, year: int, day: int) -> None:
-        self.year = year
+    def __init__(self, event: int, day: int) -> None:
+        self.event = event
         self.day = day
 
     def is_released(self) -> bool:
-        return is_released(self.year, self.day)
+        return calendar.is_released(self.event, self.day)
 
     def get_title(self) -> str | None:
-        return memo_get_title(self.year, self.day)
+        return memo_get_title(self.event, self.day)
 
     def get_input(self, part: int) -> tuple[str, ...] | None:
-        return memo_get_input(self.year, self.day, part)
+        return memo_get_input(self.event, self.day, part)
 
     def get_answer(self, part: int) -> str | None:
-        return memo_get_answer(self.year, self.day, part)
+        return memo_get_answer(self.event, self.day, part)
 
 
 InputData = tuple[str, ...]
@@ -105,8 +105,8 @@ class SolutionBase[
                 duration = colored(f"{self.duration_as_ms:.0f}", "red")
             return f"Part {self.part}: {answer}, took {duration} ms"
 
-    def __init__(self, year: int, day: int) -> None:
-        self.quest = Quest(year, day)
+    def __init__(self, event: int, day: int) -> None:
+        self.quest = Quest(event, day)
         self.callables = {"1": self.part_1, "2": self.part_2, "3": self.part_3}
 
     @abstractmethod
@@ -163,7 +163,7 @@ class SolutionBase[
                 return
             token = memo_get_token()
             response = API(token).submit_answer(
-                self.quest.year,
+                self.quest.event,
                 self.quest.day,
                 part,
                 exec_part.answer,
@@ -171,20 +171,29 @@ class SolutionBase[
             for line in SubmitResponseFormatter.format(response):
                 print(line)
 
-        header = colored(
-            f"everybody.codes {self.quest.year} Quest {self.quest.day}",
-            "yellow",
-        )
-        if not self.quest.is_released():
+        def print_header() -> None:
+            event = "Story " if calendar.valid_story(self.quest.event) else ""
+            event = f"{event}{self.quest.event}"
+            header = colored(
+                f"everybody.codes {event} Quest {self.quest.day}",
+                "yellow",
+            )
+            if not self.quest.is_released():
+                print()
+                print(f"{header}: == Quest not available yet ==")
+                print()
+                return
+            title = self.quest.get_title()
+            title = (
+                ""
+                if title is None
+                else colored(f": {title}", "white", attrs=["bold"])
+            )
             print()
-            print(f"{header}: == Quest not available yet ==")
+            print(header + title)
             print()
-            return
-        title = self.quest.get_title()
-        print()
-        print(header + ("" if title is None else f": {title}"))
-        print()
 
+        print_header()
         if __debug__:
             self.samples()
         exec_parts = [

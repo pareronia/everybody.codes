@@ -30,3 +30,13 @@
 |[19](https://everybody.codes/event/2024/quests/19)|[✓](src/main/python/2024_19.py)||&nbsp;&nbsp;59&nbsp;/&nbsp;&nbsp;&nbsp;51&nbsp;/&nbsp;&nbsp;&nbsp;47|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;50&nbsp;/&nbsp;104|
 |[20](https://everybody.codes/event/2024/quests/20)|[✓](src/main/python/2024_20.py)|[✓](src/main/java/com/github/pareronia/everybody_codes/Quest2024_20.java)|&nbsp;129&nbsp;/&nbsp;&nbsp;&nbsp;92&nbsp;/&nbsp;&nbsp;&nbsp;64|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;9&nbsp;/&nbsp;&nbsp;87|
 <!-- @END:Quests:2024@ -->
+
+## Story 1
+
+<!-- @BEGIN:Quests:1@ -->
+| Quest | python3 | java | Rank | Points |
+| --- | --- | --- | --- | --- |
+|[1](https://everybody.codes/story/1/quests/1)|[✓](src/main/python/S01_01.py)||&nbsp;208&nbsp;/&nbsp;&nbsp;157&nbsp;/&nbsp;&nbsp;138|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;13|
+|[2](https://everybody.codes/story/1/quests/2)|||||
+|[3](https://everybody.codes/story/1/quests/3)|||||
+<!-- @END:Quests:1@ -->
