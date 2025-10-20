@@ -75,14 +75,16 @@ def main(args: list[str]) -> None:
     if len(args) == 0:
         year = calendar.now().year
         if calendar.contest_started(year):
-            print_event(year)
+            print_event(year, 60)
         else:
             msg = "No year provided"
             raise ValueError(msg)
     elif len(args) == 1:
         event = int(args[0])
-        if calendar.valid_year(event) or calendar.valid_story(event):
-            print_event(event)
+        if calendar.valid_year(event):
+            print_event(event, 60)
+        elif calendar.valid_story(event):
+            print_event(event, 9)
         else:
             msg = "Invalid event provided"
             raise ValueError(msg)
@@ -91,10 +93,10 @@ def main(args: list[str]) -> None:
         raise ValueError(msg)
 
 
-def print_event(event: int) -> None:
+def print_event(event: int, total_parts: int) -> None:
     user_stats = get_user_stats(event)
     quest_stats = get_quest_stats(event)
-    finished = f"{len(user_stats)}/60"
+    finished = f"{len(user_stats)}/{total_parts}"
     total = sum(s.score for s in user_stats.values())
     wd, wp, ws = 34, 23, 15
 
