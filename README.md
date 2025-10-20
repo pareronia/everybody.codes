@@ -38,5 +38,5 @@
 | --- | --- | --- | --- | --- |
 |[1](https://everybody.codes/story/1/quests/1)|[✓](src/main/python/S01_01.py)||&nbsp;208&nbsp;/&nbsp;&nbsp;157&nbsp;/&nbsp;&nbsp;138|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;13|
 |[2](https://everybody.codes/story/1/quests/2)|[✓](src/main/python/S01_02.py)||&nbsp;135&nbsp;/&nbsp;&nbsp;128&nbsp;/&nbsp;&nbsp;115|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;36|
-|[3](https://everybody.codes/story/1/quests/3)|||||
+|[3](https://everybody.codes/story/1/quests/3)|[✓](src/main/python/S01_03.py)||&nbsp;123&nbsp;/&nbsp;&nbsp;120&nbsp;/&nbsp;&nbsp;113|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;38|
 <!-- @END:Quests:1@ -->
