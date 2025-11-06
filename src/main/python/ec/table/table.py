@@ -62,7 +62,7 @@ def main(file_name: str) -> None:
                 )
                 stats = get_user_stats(event)
                 print("| Quest | python3 | java | Rank | Points |", file=f)
-                print("| --- | --- | --- | --- | --- |", file=f)
+                print("| --- | :---: | :---: | --- | --- |", file=f)
                 days = 3 if calendar.valid_story(event) else 20
                 for day in range(1, days + 1):
                     if (event, day, 3) in stats:
