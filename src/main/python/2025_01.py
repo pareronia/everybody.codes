@@ -4,6 +4,7 @@
 #
 
 import sys
+from collections.abc import Iterator
 
 from ec.common import InputData
 from ec.common import SolutionBase
@@ -26,38 +27,33 @@ R3,L2,R3,L3
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
+    def parse(
+        self, input_data: InputData
+    ) -> tuple[list[str], Iterator[tuple[str, int]]]:
+        return input_data[0].split(","), (
+            (x[0], int(x[1:])) for x in input_data[2].split(",")
+        )
+
     def part_1(self, input_data: InputData) -> Output1:
-        names = input_data[0].split(",")
+        names, moves = self.parse(input_data)
         pos = 0
-        for m in input_data[2].split(","):
-            if m.startswith("R"):
-                pos = min(pos + int(m[1:]), len(names) - 1)
-            else:
-                pos = max(pos - int(m[1:]), 0)
+        for d, a in moves:
+            pos = min(max(pos + (a if d == "R" else -a), 0), len(names) - 1)
         return names[pos]
 
     def part_2(self, input_data: InputData) -> Output2:
-        names = input_data[0].split(",")
+        names, moves = self.parse(input_data)
         pos = 0
-        for m in input_data[2].split(","):
-            if m.startswith("R"):
-                pos = (pos + int(m[1:])) % len(names)
-            else:
-                pos = (pos - int(m[1:])) % len(names)
+        for d, a in moves:
+            pos = (pos + (a if d == "R" else -a)) % len(names)
         return names[pos]
 
     def part_3(self, input_data: InputData) -> Output3:
-        names = input_data[0].split(",")
-        pos = 0
-        for m in input_data[2].split(","):
-            if m.startswith("R"):
-                swp = (pos + int(m[1:])) % len(names)
-            else:
-                swp = (len(names) + pos - int(m[1:])) % len(names)
-            tmp = names[swp]
-            names[swp] = names[pos]
-            names[pos] = tmp
-        return names[pos]
+        names, moves = self.parse(input_data)
+        for d, a in moves:
+            swp = (a if d == "R" else -a) % len(names)
+            names[0], names[swp] = names[swp], names[0]
+        return names[0]
 
     @ec_samples(
         (
