@@ -40,7 +40,7 @@
 |[2](https://everybody.codes/event/2025/quests/2)|[✓](src/main/python/2025_02.py)||&nbsp;544&nbsp;/&nbsp;&nbsp;441&nbsp;/&nbsp;&nbsp;434|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[3](https://everybody.codes/event/2025/quests/3)|[✓](src/main/python/2025_03.py)||&nbsp;421&nbsp;/&nbsp;&nbsp;414&nbsp;/&nbsp;&nbsp;405|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[4](https://everybody.codes/event/2025/quests/4)|[✓](src/main/python/2025_04.py)||&nbsp;122&nbsp;/&nbsp;&nbsp;130&nbsp;/&nbsp;&nbsp;138|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;13|
-|[5](https://everybody.codes/event/2025/quests/5)|||||
+|[5](https://everybody.codes/event/2025/quests/5)|[✓](src/main/python/2025_05.py)||&nbsp;114&nbsp;/&nbsp;&nbsp;106&nbsp;/&nbsp;&nbsp;116|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;35|
 |[6](https://everybody.codes/event/2025/quests/6)|||||
 |[7](https://everybody.codes/event/2025/quests/7)|||||
 |[8](https://everybody.codes/event/2025/quests/8)|||||
