@@ -4,6 +4,9 @@
 #
 
 import sys
+from dataclasses import dataclass
+from operator import attrgetter
+from typing import Self
 
 from ec.common import InputData
 from ec.common import SolutionBase
@@ -43,64 +46,65 @@ TEST4 = """\
 Output1 = int
 Output2 = int
 Output3 = int
-Sword = tuple[int, list[int]]
+Spine = list[int | None]
+
+
+@dataclass(frozen=True)
+class Sword:
+    sid: int
+    quality: int
+    sort_key: tuple[int, tuple[int, ...], int]
+
+    @classmethod
+    def from_input(cls, string: str) -> Self:
+        sid, nums = string.split(":")
+        spine = cls.spine([int(n) for n in nums.split(",")])
+        quality = int("".join(str(spine[i]) for i in range(1, len(spine), 3)))
+        return cls(int(sid), quality, (quality, cls.levels(spine), int(sid)))
+
+    @classmethod
+    def spine(cls, nums: list[int]) -> Spine:
+        spine = [None, nums[0], None]
+        for num in nums[1:]:
+            for r in range(1, len(spine), 3):
+                sp = spine[r]
+                assert sp is not None
+                if num < sp and spine[r - 1] is None:
+                    spine[r - 1] = num
+                    break
+                if num > sp and spine[r + 1] is None:
+                    spine[r + 1] = num
+                    break
+            else:
+                spine.extend([None, num, None])
+        return spine
+
+    @classmethod
+    def levels(cls, spine: Spine) -> tuple[int, ...]:
+        return tuple(
+            int(
+                "".join(
+                    str(spine[i + j]) if spine[i + j] is not None else ""
+                    for j in range(3)
+                )
+            )
+            for i in range(0, len(spine), 3)
+        )
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def spine(self, nums: list[int]) -> list[int]:
-        spine = [-1, -1, -1]
-        spine[1] = nums[0]
-        for num in nums[1:]:
-            for r in range(len(spine) // 3):
-                if num < spine[r * 3 + 1] and spine[r * 3] < 0:
-                    spine[r * 3] = num
-                    break
-                if num > spine[r * 3 + 1] and spine[r * 3 + 2] < 0:
-                    spine[r * 3 + 2] = num
-                    break
-            else:
-                spine.extend([-1, -1, -1])
-                r += 1
-                spine[r * 3 + 1] = num
-        return spine
-
-    def quality(self, spine: list[int]) -> int:
-        return int("".join(str(spine[i]) for i in range(1, len(spine), 3)))
-
     def part_1(self, input_data: InputData) -> Output1:
-        nums = [int(n) for n in input_data[0].split(":")[1].split(",")]
-        return self.quality(self.spine(nums))
+        return Sword.from_input(input_data[0]).quality
 
     def part_2(self, input_data: InputData) -> Output2:
-        lo, hi = sys.maxsize, -sys.maxsize
-        for line in input_data:
-            nums = [int(n) for n in line.split(":")[1].split(",")]
-            q = self.quality(self.spine(nums))
-            lo, hi = min(lo, q), max(hi, q)
-        return hi - lo
+        swords = [Sword.from_input(line) for line in input_data]
+        swords.sort(key=attrgetter("quality"))
+        return swords[-1].quality - swords[0].quality
 
     def part_3(self, input_data: InputData) -> Output3:
-        def sort_key(sword: Sword) -> tuple[int, tuple[int, ...], int]:
-            sid, spine = sword
-            q = self.quality(spine)
-            lvls = tuple(
-                int(
-                    "".join(
-                        str(spine[i + j]) if spine[i + j] != -1 else ""
-                        for j in range(3)
-                    )
-                )
-                for i in range(0, len(spine), 3)
-            )
-            return (q, lvls, sid)
-
-        swords = list[Sword]()
-        for line in input_data:
-            sid, nn = line.split(":")
-            nums = [int(n) for n in nn.split(",")]
-            swords.append((int(sid), self.spine(nums)))
-        swords.sort(key=sort_key, reverse=True)
-        return sum((i + 1) * sw[0] for i, sw in enumerate(swords))
+        swords = [Sword.from_input(line) for line in input_data]
+        swords.sort(key=attrgetter("sort_key"), reverse=True)
+        return sum(i * sw.sid for i, sw in enumerate(swords, start=1))
 
     @ec_samples(
         (
