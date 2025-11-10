@@ -1,0 +1,48 @@
+package com.github.pareronia.everybody_codes.utils;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
+public final class StringUtils {
+
+    public static final String EMPTY = "";
+
+    private StringUtils() {}
+
+    public record StringSplit(String left, String right) {}
+
+    public static StringSplit splitOnce(final String string, final String regex) {
+        final String[] splits = Objects.requireNonNull(string).split(regex);
+        return new StringSplit(splits[0], splits[1]);
+    }
+
+    public static List<String> splitLines(final String input) {
+        return Arrays.asList((Objects.requireNonNull(input) + "\n").split("\\r?\\n"));
+    }
+
+    public static int length(final CharSequence chs) {
+        return chs == null ? 0 : chs.length();
+    }
+
+    public static boolean isBlank(final CharSequence chs) {
+        final int strLen = length(chs);
+        if (strLen == 0) {
+            return true;
+        }
+        for (int i = 0; i < strLen; i++) {
+            if (!Character.isWhitespace(chs.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean isNotBlank(final CharSequence chs) {
+        return !isBlank(chs);
+    }
+
+    public static boolean isEmpty(final CharSequence chs) {
+        return chs == null || chs.length() == 0;
+    }
+}

@@ -4,6 +4,7 @@
     <rule ref="rulesets/internal/all-java.xml">
         <exclude name="CommentRequired"/>
         <exclude name="LoosePackageCoupling"/>
+        <exclude name="OnlyOneReturn"/>
         <exclude name="UseConcurrentHashMap"/>
     </rule>
     <rule ref="category/java/design.xml/CognitiveComplexity">
