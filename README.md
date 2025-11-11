@@ -36,7 +36,7 @@
 <!-- @BEGIN:Quests:2025@ -->
 | Quest | python3 | java | Rank | Points |
 | --- | :---: | :---: | --- | --- |
-|[1](https://everybody.codes/event/2025/quests/1)|[✓](src/main/python/2025_01.py)||&nbsp;763&nbsp;/&nbsp;&nbsp;686&nbsp;/&nbsp;&nbsp;643|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
+|[1](https://everybody.codes/event/2025/quests/1)|[✓](src/main/python/2025_01.py)|[✓](src/main/java/com/github/pareronia/everybody_codes/Quest2025_01.java)|&nbsp;763&nbsp;/&nbsp;&nbsp;686&nbsp;/&nbsp;&nbsp;643|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[2](https://everybody.codes/event/2025/quests/2)|[✓](src/main/python/2025_02.py)||&nbsp;544&nbsp;/&nbsp;&nbsp;441&nbsp;/&nbsp;&nbsp;434|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[3](https://everybody.codes/event/2025/quests/3)|[✓](src/main/python/2025_03.py)||&nbsp;421&nbsp;/&nbsp;&nbsp;414&nbsp;/&nbsp;&nbsp;405|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[4](https://everybody.codes/event/2025/quests/4)|[✓](src/main/python/2025_04.py)||&nbsp;122&nbsp;/&nbsp;&nbsp;130&nbsp;/&nbsp;&nbsp;138|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;13|
