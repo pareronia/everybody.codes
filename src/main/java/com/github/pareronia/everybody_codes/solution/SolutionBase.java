@@ -20,8 +20,8 @@ public abstract class SolutionBase<Output1, Output2, Output3> implements LoggerE
 
     private Quest createQuest() {
         final String nums = this.getClass().getSimpleName().substring("Quest".length());
-        final StringSplit split = StringUtils.splitOnce(nums, "_");
-        return Quest.create(Integer.parseInt(split.left()), Integer.parseInt(split.right()));
+        final StringSplit<Integer> split = StringUtils.splitOnceToInt(nums, "_");
+        return Quest.create(split.left(), split.right());
     }
 
     protected abstract Output1 solvePart1(List<String> input);

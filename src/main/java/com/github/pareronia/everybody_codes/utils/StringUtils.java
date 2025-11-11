@@ -3,6 +3,7 @@ package com.github.pareronia.everybody_codes.utils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 public final class StringUtils {
 
@@ -10,11 +11,21 @@ public final class StringUtils {
 
     private StringUtils() {}
 
-    public record StringSplit(String left, String right) {}
+    public record StringSplit<T>(T left, T right) {}
 
-    public static StringSplit splitOnce(final String string, final String regex) {
+    public static StringSplit<String> splitOnce(final String string, final String regex) {
         final String[] splits = Objects.requireNonNull(string).split(regex);
-        return new StringSplit(splits[0], splits[1]);
+        return new StringSplit<>(splits[0], splits[1]);
+    }
+
+    public static StringSplit<Integer> splitOnceToInt(final String string, final String regex) {
+        final String[] splits = Objects.requireNonNull(string).split(regex);
+        return new StringSplit<>(Integer.parseInt(splits[0]), Integer.parseInt(splits[1]));
+    }
+
+    public static IntStream splitToInt(final String string, final String regex) {
+        return Arrays.stream(Objects.requireNonNull(string).split(regex))
+                .mapToInt(Integer::parseInt);
     }
 
     public static List<String> splitLines(final String input) {

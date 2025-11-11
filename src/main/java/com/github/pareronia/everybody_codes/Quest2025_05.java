@@ -99,9 +99,8 @@ public final class Quest2025_05 extends SolutionBase<Long, Long, Long> {
     private record Sword(int sid, long quality, Levels levels) {
 
         public static Sword fromInput(final String string) {
-            final StringSplit split = StringUtils.splitOnce(string, ":");
-            final int[] nums =
-                    Arrays.stream(split.right().split(",")).mapToInt(Integer::parseInt).toArray();
+            final StringSplit<String> split = StringUtils.splitOnce(string, ":");
+            final int[] nums = StringUtils.splitToInt(split.right(), ",").toArray();
             final List<Integer> spine = spine(nums);
             @SuppressWarnings({"PMD.AssignmentInOperand", "PMD.UnusedAssignment"})
             final String quality =
