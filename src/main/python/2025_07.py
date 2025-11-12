@@ -90,57 +90,43 @@ Output3 = int
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def part_1(self, input_data: InputData) -> Output1:
+    def parse(
+        self, input_data: InputData
+    ) -> tuple[list[str], dict[str, set[str]]]:
         names = input_data[0].split(",")
         edges = defaultdict[str, set[str]](set)
         for line in input_data[2:]:
             a, b = line.split(" > ")
             edges[a] |= set(b.split(","))
+        return names, edges
 
-        for name in names:
-            for j in range(1, len(name)):
-                if name[j] not in edges[name[j - 1]]:
-                    break
-            else:
-                return name
-        raise AssertionError
+    def possible(self, name: str, edges: dict[str, set[str]]) -> bool:
+        return all(name[j] in edges[name[j - 1]] for j in range(1, len(name)))
+
+    def part_1(self, input_data: InputData) -> Output1:
+        names, edges = self.parse(input_data)
+        return next(name for name in names if self.possible(name, edges))
 
     def part_2(self, input_data: InputData) -> Output2:
-        names = input_data[0].split(",")
-        edges = defaultdict[str, set[str]](set)
-        for line in input_data[2:]:
-            a, b = line.split(" > ")
-            edges[a] |= set(b.split(","))
-
-        ans = 0
-        for i, name in enumerate(names, start=1):
-            for j in range(1, len(name)):
-                if name[j] not in edges[name[j - 1]]:
-                    break
-            else:
-                ans += i
-        return ans
+        names, edges = self.parse(input_data)
+        return sum(
+            i
+            for i, name in enumerate(names, start=1)
+            if self.possible(name, edges)
+        )
 
     def part_3(self, input_data: InputData) -> Output3:
-        names = input_data[0].split(",")
-        edges = defaultdict[str, set[str]](set)
-        for line in input_data[2:]:
-            a, b = line.split(" > ")
-            edges[a] |= set(b.split(","))
-
         def dfs(name: str, ans: set[str]) -> None:
             if 7 <= len(name) <= 11:
                 ans.add(name)
-            if len(name) <= 10:
-                for ch in edges.get(name[-1], {}):
+            if len(name) < 11:
+                for ch in edges[name[-1]]:
                     dfs(name + ch, ans)
 
+        names, edges = self.parse(input_data)
         ans = set[str]()
         for name in names:
-            for j in range(1, len(name)):
-                if name[j] not in edges[name[j - 1]]:
-                    break
-            else:
+            if self.possible(name, edges):
                 dfs(name, ans)
         return len(ans)
 
