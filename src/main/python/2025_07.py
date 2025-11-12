@@ -5,6 +5,7 @@
 
 import sys
 from collections import defaultdict
+from functools import cache
 
 from ec.common import InputData
 from ec.common import SolutionBase
@@ -116,19 +117,24 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         )
 
     def part_3(self, input_data: InputData) -> Output3:
-        def dfs(name: str, ans: set[str]) -> None:
-            if 7 <= len(name) <= 11:
-                ans.add(name)
-            if len(name) < 11:
-                for ch in edges[name[-1]]:
-                    dfs(name + ch, ans)
+        @cache
+        def dfs(ch: str, size: int) -> int:
+            cnt = 0
+            if size >= 7:
+                cnt += 1
+            if size < 11:
+                cnt += sum(dfs(nxt, size + 1) for nxt in edges[ch])
+            return cnt
 
         names, edges = self.parse(input_data)
-        ans = set[str]()
-        for name in names:
-            if self.possible(name, edges):
-                dfs(name, ans)
-        return len(ans)
+        return sum(
+            dfs(name[-1], len(name))
+            for name in names
+            if not any(
+                other != name and name.startswith(other) for other in names
+            )
+            and self.possible(name, edges)
+        )
 
     @ec_samples(
         (
