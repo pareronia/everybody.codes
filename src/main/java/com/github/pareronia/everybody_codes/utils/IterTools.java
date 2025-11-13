@@ -34,6 +34,36 @@ public final class IterTools {
         };
     }
 
+    public static <T> IterToolsIterator<Pair<T>> pairwise(final Stream<T> stream) {
+        return pairwise(stream.iterator());
+    }
+
+    public static <T> IterToolsIterator<Pair<T>> pairwise(final Iterator<T> iterator) {
+        return new IterToolsIterator<>() {
+            private T first = iterator.next();
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public Pair<T> next() {
+                final T second = iterator.next();
+                final Pair<T> pair = Pair.of(first, second);
+                first = second;
+                return pair;
+            }
+        };
+    }
+
+    public record Pair<T>(T first, T second) {
+        @SuppressWarnings("PMD.ShortMethodName")
+        public static <T> Pair<T> of(final T first, final T second) {
+            return new Pair<>(first, second);
+        }
+    }
+
     public record ProductPair<T, U>(T first, U second) {
         @SuppressWarnings("PMD.ShortMethodName")
         public static <T, U> ProductPair<T, U> of(final T first, final U second) {
