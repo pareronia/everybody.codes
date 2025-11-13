@@ -3,8 +3,8 @@
 # everybody.codes 2025 Quest 4
 #
 
-import itertools
 import sys
+from math import prod
 
 from ec.common import InputData
 from ec.common import SolutionBase
@@ -56,17 +56,17 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         return q if r == 0 else q + 1
 
     def part_3(self, input_data: InputData) -> Output3:
-        t = []
-        for line in input_data:
-            if "|" in line:
-                a, b = map(int, line.split("|"))
-                t.append((a, b))
-            else:
-                t.append((int(line), int(line)))
-        ans = 100.0
-        for p1, p2 in itertools.pairwise(t):
-            ans *= p1[1] / p2[0]
-        return int(ans)
+        return int(
+            prod(
+                (
+                    int(a) / int(b)
+                    for a, b in (
+                        s.split() for s in " ".join(input_data).split("|")
+                    )
+                ),
+                start=100.0,
+            )
+        )
 
     @ec_samples(
         (
