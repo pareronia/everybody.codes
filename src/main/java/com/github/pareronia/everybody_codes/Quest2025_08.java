@@ -6,10 +6,12 @@ import com.github.pareronia.everybody_codes.utils.IterTools.IterToolsIterator;
 import com.github.pareronia.everybody_codes.utils.IterTools.Pair;
 import com.github.pareronia.everybody_codes.utils.StringUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
 public final class Quest2025_08 extends SolutionBase<Long, Long, Long> {
@@ -55,20 +57,27 @@ public final class Quest2025_08 extends SolutionBase<Long, Long, Long> {
         return ans;
     }
 
+    @SuppressWarnings({"PMD.ShortVariable", "PMD.AvoidInstantiatingObjectsInLoops"})
     private long solve3(final List<String> input, final int nails) {
-        final List<Thread> threads =
-                IterTools.pairwise(StringUtils.splitToInt(input.getFirst(), ",").boxed()).stream()
-                        .map(Thread::of)
-                        .toList();
-        return IntStream.rangeClosed(1, nails)
-                .boxed()
-                .flatMap(
-                        t1 ->
-                                IntStream.rangeClosed(t1 + 1, nails)
-                                        .mapToObj(t2 -> new Thread(t1, t2)))
-                .mapToLong(t -> threads.stream().filter(t1 -> t1.crosses(t)).count())
-                .max()
-                .getAsLong();
+        final Map<Integer, List<Integer>> threads = new HashMap<>();
+        final IterToolsIterator<Pair<Integer>> pairs =
+                IterTools.pairwise(StringUtils.splitToInt(input.getFirst(), ",").boxed());
+        for (final Pair<Integer> pair : pairs.iterable()) {
+            threads.computeIfAbsent(pair.first(), k -> new ArrayList<>()).add(pair.second());
+            threads.computeIfAbsent(pair.second(), k -> new ArrayList<>()).add(pair.first());
+        }
+        long ans = 0L;
+        for (int i = 1; i <= nails; i++) {
+            final int a = i;
+            long cnt = 0L;
+            for (int j = i + 2; j <= nails; j++) {
+                final int b = j;
+                cnt -= threads.get(b).stream().filter(c -> a < c && c < b - 1).count();
+                cnt += threads.get(b - 1).stream().filter(c -> !(a <= c && c <= b)).count();
+                ans = Math.max(ans, cnt + threads.get(i).stream().filter(c -> c == b).count());
+            }
+        }
+        return ans;
     }
 
     @Override
