@@ -5,6 +5,7 @@
 
 import itertools
 import sys
+from collections import defaultdict
 
 from ec.common import InputData
 from ec.common import SolutionBase
@@ -41,20 +42,18 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         return ans
 
     def solve_3(self, input_data: InputData, nails: int) -> int:
-        threads = [
-            (a, b)
-            for a, b in map(
-                sorted, itertools.pairwise(map(int, input_data[0].split(",")))
-            )
-        ]
-        return max(
-            sum(
-                (t1 == a and t2 == b) or (t1 < a < t2 < b) or (a < t1 < b < t2)
-                for t1, t2 in threads
-            )
-            for a in range(1, nails + 1)
-            for b in range(a + 1, nails + 1)
-        )
+        threads = defaultdict[int, list[int]](list)
+        for a, b in itertools.pairwise(map(int, input_data[0].split(","))):
+            threads[a].append(b)
+            threads[b].append(a)
+        ans = 0
+        for a in range(1, nails + 1):
+            cnt = 0
+            for b in range(a + 2, nails + 1):
+                cnt -= sum(a < c < b - 1 for c in threads[b])
+                cnt += sum(not (a <= c <= b) for c in threads[b - 1])
+                ans = max(ans, cnt + sum(c == b for c in threads[a]))
+        return ans
 
     def part_3(self, input_data: InputData) -> Output3:
         return self.solve_3(input_data, 256)
