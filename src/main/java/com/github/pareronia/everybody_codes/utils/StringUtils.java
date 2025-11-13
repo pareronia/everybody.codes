@@ -23,6 +23,11 @@ public final class StringUtils {
         return new StringSplit<>(Integer.parseInt(splits[0]), Integer.parseInt(splits[1]));
     }
 
+    public static StringSplit<Double> splitOnceToDouble(final String string, final String regex) {
+        final String[] splits = Objects.requireNonNull(string).split(regex);
+        return new StringSplit<>(Double.parseDouble(splits[0]), Double.parseDouble(splits[1]));
+    }
+
     public static IntStream splitToInt(final String string, final String regex) {
         return Arrays.stream(Objects.requireNonNull(string).split(regex))
                 .mapToInt(Integer::parseInt);
