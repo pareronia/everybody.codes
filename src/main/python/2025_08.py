@@ -21,45 +21,40 @@ TEST3 = "1,5,2,6,8,4,1,7,3,6"
 class Solution(SolutionBase[Output1, Output2, Output3]):
     def solve_1(self, input_data: InputData, nails: int) -> int:
         return sum(
-            1
+            abs(a - b) == nails // 2
             for a, b in itertools.pairwise(map(int, input_data[0].split(",")))
-            if abs(a - b) == nails // 2
         )
 
     def part_1(self, input_data: InputData) -> Output1:
         return self.solve_1(input_data, 32)
 
     def part_2(self, input_data: InputData) -> Output2:
-        def cross(t1: int, t2: int, a: int, b: int) -> bool:
-            return (a > t1 and a < t2 and b > t2) or (
-                b > t1 and b < t2 and a < t1
-            )
-
         threads = set[tuple[int, int]]()
         ans = 0
-        for t in itertools.pairwise(map(int, input_data[0].split(","))):
-            a, b = sorted(t)
-            ans += sum(cross(t1, t2, a, b) for t1, t2 in threads)
+        for a, b in map(
+            sorted, itertools.pairwise(map(int, input_data[0].split(",")))
+        ):
+            ans += sum(
+                (t1 < a < t2 < b) or (a < t1 < b < t2) for t1, t2 in threads
+            )
             threads.add((a, b))
         return ans
 
     def solve_3(self, input_data: InputData, nails: int) -> int:
-        def cross(t1: int, t2: int, a: int, b: int) -> bool:
-            return (
-                (t1 == a and t2 == b)
-                or (a > t1 and a < t2 and b > t2)
-                or (b > t1 and b < t2 and a < t1)
+        threads = [
+            (a, b)
+            for a, b in map(
+                sorted, itertools.pairwise(map(int, input_data[0].split(",")))
             )
-
-        threads = list[tuple[int, int]]()
-        for t in itertools.pairwise(map(int, input_data[0].split(","))):
-            a, b = sorted(t)
-            threads.append((a, b))
-        ans = 0
-        for i in range(1, nails + 1):
-            for j in range(i + 1, nails + 1):
-                ans = max(ans, sum(cross(t1, t2, i, j) for t1, t2 in threads))
-        return ans
+        ]
+        return max(
+            sum(
+                (t1 == a and t2 == b) or (t1 < a < t2 < b) or (a < t1 < b < t2)
+                for t1, t2 in threads
+            )
+            for a in range(1, nails + 1)
+            for b in range(a + 1, nails + 1)
+        )
 
     def part_3(self, input_data: InputData) -> Output3:
         return self.solve_3(input_data, 256)
