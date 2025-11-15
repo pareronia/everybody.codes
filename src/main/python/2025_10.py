@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import sys
 from collections import deque
-from dataclasses import dataclass
 from functools import cache
 from typing import TYPE_CHECKING
 from typing import TypeVar
@@ -102,6 +101,7 @@ Output1 = int
 Output2 = int
 Output3 = int
 Cell = tuple[int, int]
+State = tuple[tuple[int | None, ...], Cell]
 
 
 def flood_fill(
@@ -197,17 +197,6 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         return self.solve_2(input_data, max_cnt=20)
 
     def part_3(self, input_data: InputData) -> Output3:  # noqa:C901
-        @dataclass(frozen=True)
-        class State:
-            sheep: set[Cell]
-            dragon: Cell
-
-            def __hash__(self) -> int:
-                h = 0
-                for r, c in self.sheep:
-                    h |= 1 << (r * w + c)
-                return hash((h, self.dragon))
-
         h, w = len(input_data), len(input_data[0])
         dragon = next(
             (r, c)
@@ -215,12 +204,10 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             for c in range(w)
             if input_data[r][c] == "D"
         )
-        sheep = {
-            (r, c)
-            for r in range(h)
+        sheep = tuple(
+            next((r for r in range(h) if input_data[r][c] == "S"), None)
             for c in range(w)
-            if input_data[r][c] == "S"
-        }
+        )
         hides = {
             (r, c)
             for r in range(h)
@@ -233,40 +220,47 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             moves = (
                 (r, c)
                 for r, c, _ in (
-                    self.adjacent(
-                        (state.dragon[0], state.dragon[1], 0), h, w, 1
-                    )
+                    self.adjacent((state[1][0], state[1][1], 0), h, w, 1)
                 )
             )
             for m in moves:
                 if m not in hides:
-                    states.append(State({s for s in state.sheep if s != m}, m))
+                    new_sheep = tuple(
+                        state[0][c] if (state[0][c], c) != m else None
+                        for c in range(w)
+                    )
                 else:
-                    states.append(State(set(state.sheep), m))
+                    new_sheep = tuple(state[0])
+                states.append((new_sheep, m))
             return states
 
         def sheep_moves(state: State) -> list[State]:
             states = list[State]()
             ok = False
-            for rs, cs in state.sheep:
+            for cs in range(w):
+                rs = state[0][cs]
+                if rs is None:
+                    continue
                 ns = (rs + 1, cs)
-                if ns[0] == h:
+                if (ns[0] == h) or (
+                    cs != dragon[1]
+                    and all((r, cs) in hides for r in range(ns[0], h))
+                ):
                     ok = True
-                elif ns != state.dragon or ns in hides:
+                elif ns != state[1] or ns in hides:
                     ok = True
-                    states.append(
-                        State(
-                            {ns} | {s for s in state.sheep if s != (rs, cs)},
-                            state.dragon,
-                        )
+                    new_sheep = tuple(
+                        state[0][c] if (state[0][c], c) != (rs, cs) else ns[0]
+                        for c in range(w)
                     )
+                    states.append((new_sheep, state[1]))
             if not ok:
-                states.append(State(set(state.sheep), state.dragon))
+                states.append((tuple(state[0]), state[1]))
             return states
 
         @cache
         def dfs(state: State, sheep_turn: bool) -> int:  # noqa:FBT001
-            if len(state.sheep) == 0:
+            if all(state[0][c] is None for c in range(w)):
                 return 1
             ans = 0
             if sheep_turn:
@@ -277,7 +271,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                     ans += dfs(s, sheep_turn=True)
             return ans
 
-        state = State(set(sheep), dragon)
+        state = (sheep, dragon)
         return dfs(state, sheep_turn=True)
 
     def samples(self) -> None:
