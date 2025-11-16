@@ -133,3 +133,22 @@ def prim(
                 continue
             q.put((d, n))
     return total, seen
+
+
+def connected_components(
+    nodes: set[T], adjacent: Callable[[T], Iterator[T]]
+) -> list[set[T]]:
+    components = list[set[T]]()
+    todo = set(nodes)
+    while len(todo) != 0:
+        node = todo.pop()
+        component = {node}
+        q = deque[T]([node])
+        while len(q) != 0:
+            node = q.popleft()
+            for n in adjacent(node):
+                if n not in component:
+                    q.append(n)
+                component.add(n)
+        components.append(component)
+    return components
