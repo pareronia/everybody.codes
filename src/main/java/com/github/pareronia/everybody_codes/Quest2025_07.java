@@ -168,17 +168,18 @@ public final class Quest2025_07 extends SolutionBase<String, Integer, Integer> {
         }
 
         public int count(final Character chr, final int size) {
-            return this.cache.computeIfAbsent(new CacheKey(chr, size), k -> doCount(chr, size));
-        }
-
-        private int doCount(final Character chr, final int size) {
+            final CacheKey key = new CacheKey(chr, size);
+            if (this.cache.containsKey(key)) {
+                return this.cache.get(key);
+            }
             int cnt = 0;
             if (size >= MIN_SIZE) {
                 cnt++;
             }
             if (size < MAX_SIZE && this.edges.containsKey(chr)) {
-                cnt += this.edges.get(chr).stream().mapToInt(nxt -> doCount(nxt, size + 1)).sum();
+                cnt += this.edges.get(chr).stream().mapToInt(nxt -> count(nxt, size + 1)).sum();
             }
+            this.cache.put(key, cnt);
             return cnt;
         }
 
