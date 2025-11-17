@@ -67,3 +67,13 @@
 |[2](https://everybody.codes/story/1/quests/2)|[✓](src/main/python/S01_02.py)||&nbsp;135&nbsp;/&nbsp;&nbsp;128&nbsp;/&nbsp;&nbsp;115|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;36|
 |[3](https://everybody.codes/story/1/quests/3)|[✓](src/main/python/S01_03.py)||&nbsp;123&nbsp;/&nbsp;&nbsp;120&nbsp;/&nbsp;&nbsp;113|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;38|
 <!-- @END:Quests:1@ -->
+
+## Story 2
+
+<!-- @BEGIN:Quests:2@ -->
+| Quest | python3 | java | Rank | Points |
+| --- | :---: | :---: | --- | --- |
+|[1](https://everybody.codes/story/2/quests/1)|[✓](src/main/python/S02_01.py)||&nbsp;153&nbsp;/&nbsp;&nbsp;172&nbsp;/&nbsp;&nbsp;158|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
+|[2](https://everybody.codes/story/2/quests/2)|||||
+|[3](https://everybody.codes/story/2/quests/3)|||||
+<!-- @END:Quests:2@ -->

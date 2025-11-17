@@ -6,6 +6,7 @@ import time
 from abc import ABC
 from abc import abstractmethod
 from collections.abc import Callable
+from collections.abc import Iterable
 from collections.abc import Iterator
 from enum import Enum
 from enum import unique
@@ -36,6 +37,19 @@ def clog(c: Callable[[], object]) -> None:
 def log(msg: object) -> None:
     if __debug__:
         cpprint(msg)
+
+
+def to_blocks(inputs: Iterable[str]) -> tuple[tuple[str, ...], ...]:
+    blocks = list[tuple[str, ...]]()
+    cur = list[str]()
+    for line in inputs:
+        if len(line) == 0:
+            blocks.append(tuple(cur))
+            cur = []
+        else:
+            cur.append(line)
+    blocks.append(tuple(cur))
+    return tuple(blocks)
 
 
 class Quest:
