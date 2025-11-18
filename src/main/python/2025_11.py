@@ -9,7 +9,6 @@ import sys
 from ec.common import InputData
 from ec.common import SolutionBase
 from ec.common import ec_samples
-from ec.common import log
 
 Output1 = int
 Output2 = int
@@ -39,57 +38,47 @@ TEST2 = """\
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def part_1(self, input_data: InputData) -> Output1:
-        d = [int(line) for line in input_data]
+    def make_non_decreasing(self, ducks: list[int]) -> int:
         rounds = 0
-        while rounds < 10 and any(
-            d[i] > d[j] for i, j in itertools.pairwise(range(len(d)))
-        ):
-            log(d)
-            for i, j in itertools.pairwise(range(len(d))):
-                if d[i] > d[j]:
-                    d[i] -= 1
-                    d[j] += 1
+        while (
+            k := next(
+                (
+                    i
+                    for i, j in itertools.pairwise(range(len(ducks)))
+                    if ducks[i] > ducks[j]
+                ),
+                None,
+            )
+        ) is not None:
+            for i, j in itertools.pairwise(range(k, len(ducks))):
+                if ducks[i] > ducks[j]:
+                    ducks[i] -= 1
+                    ducks[j] += 1
             rounds += 1
+        return rounds
+
+    def part_1(self, input_data: InputData) -> Output1:
+        ducks = [int(line) for line in input_data]
+        rounds = self.make_non_decreasing(ducks)
         while rounds < 10 and any(
-            d[i] < d[j] for i, j in itertools.pairwise(range(len(d)))
+            ducks[i] < ducks[j]
+            for i, j in itertools.pairwise(range(len(ducks)))
         ):
-            log(d)
-            for i, j in itertools.pairwise(range(len(d))):
-                if d[i] < d[j]:
-                    d[i] += 1
-                    d[j] -= 1
+            for i, j in itertools.pairwise(range(len(ducks))):
+                if ducks[i] < ducks[j]:
+                    ducks[i] += 1
+                    ducks[j] -= 1
             rounds += 1
-        log(d)
-        return sum(i * dd for i, dd in enumerate(d, start=1))
+        return sum(i * dd for i, dd in enumerate(ducks, start=1))
 
     def part_2(self, input_data: InputData) -> Output2:
-        d = [int(line) for line in input_data]
-        rounds = 0
-        while any(d[i] > d[j] for i, j in itertools.pairwise(range(len(d)))):
-            for i, j in itertools.pairwise(range(len(d))):
-                if d[i] > d[j]:
-                    d[i] -= 1
-                    d[j] += 1
-            rounds += 1
-        tot = sum(d)
-        assert tot % len(d) == 0
-        avg = tot // len(d)
-        return rounds + sum(abs(avg - dd) for dd in d) // 2
+        ducks = [int(line) for line in input_data]
+        rounds = self.make_non_decreasing(ducks)
+        avg = sum(ducks) // len(ducks)
+        return rounds + sum(abs(avg - dd) for dd in ducks) // 2
 
     def part_3(self, input_data: InputData) -> Output3:
-        d = [int(line) for line in input_data]
-        rounds = 0
-        while any(d[i] > d[j] for i, j in itertools.pairwise(range(len(d)))):
-            for i, j in itertools.pairwise(range(len(d))):
-                if d[i] > d[j]:
-                    d[i] -= 1
-                    d[j] += 1
-            rounds += 1
-        tot = sum(d)
-        assert tot % len(d) == 0
-        avg = tot // len(d)
-        return rounds + sum(abs(avg - dd) for dd in d) // 2
+        return self.part_2(input_data)
 
     @ec_samples(
         (
