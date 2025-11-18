@@ -17,6 +17,11 @@ public final class StringUtils {
         return IntStream.range(0, Objects.requireNonNull(string).length()).mapToObj(string::charAt);
     }
 
+    public static int count(final String string, final char chr) {
+        return (int)
+                asCharacterStream(Objects.requireNonNull(string)).filter(ch -> ch == chr).count();
+    }
+
     public record StringSplit<T>(T left, T right) {}
 
     public static StringSplit<String> splitOnce(final String string, final String regex) {

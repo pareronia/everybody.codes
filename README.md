@@ -9,7 +9,7 @@
 <!-- @BEGIN:Quests:2024@ -->
 | Quest | python3 | java | Rank | Points |
 | --- | :---: | :---: | --- | --- |
-|[1](https://everybody.codes/event/2024/quests/1)|[✓](src/main/python/2024_01.py)||&nbsp;657&nbsp;/&nbsp;&nbsp;583&nbsp;/&nbsp;&nbsp;559|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
+|[1](https://everybody.codes/event/2024/quests/1)|[✓](src/main/python/2024_01.py)|[✓](src/main/java/com/github/pareronia/everybody_codes/Quest2024_01.java)|&nbsp;657&nbsp;/&nbsp;&nbsp;583&nbsp;/&nbsp;&nbsp;559|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[2](https://everybody.codes/event/2024/quests/2)|[✓](src/main/python/2024_02.py)||&nbsp;538&nbsp;/&nbsp;&nbsp;386&nbsp;/&nbsp;&nbsp;400|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[3](https://everybody.codes/event/2024/quests/3)|[✓](src/main/python/2024_03.py)||&nbsp;306&nbsp;/&nbsp;&nbsp;303&nbsp;/&nbsp;&nbsp;297|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[4](https://everybody.codes/event/2024/quests/4)|[✓](src/main/python/2024_04.py)||&nbsp;343&nbsp;/&nbsp;&nbsp;341&nbsp;/&nbsp;&nbsp;335|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-|
