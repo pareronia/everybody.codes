@@ -61,4 +61,8 @@ public final class ANSIColors {
     public static String red(final String text) {
         return RED + text + RESET;
     }
+
+    public static String white(final String text) {
+        return WHITE + text + RESET;
+    }
 }

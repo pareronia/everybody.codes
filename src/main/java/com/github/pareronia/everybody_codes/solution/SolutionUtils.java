@@ -8,24 +8,37 @@ import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class SolutionUtils {
 
     private SolutionUtils() {}
 
+    @SuppressWarnings("PMD.SystemPrintln")
+    public static void printTitle(final int event, final int quest, final Optional<String> title) {
+        System.out.println(
+                "%s%s"
+                        .formatted(
+                                ANSIColors.yellow(
+                                        "everybody.codes %d Quest %d".formatted(event, quest)),
+                                title.map(t -> ": " + ANSIColors.bold(ANSIColors.white(t)))
+                                        .orElse("")));
+        System.out.println();
+    }
+
     @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
     public static String printDuration(final Duration duration) {
         final double timeSpent = duration.toNanos() / 1_000_000.0;
         final String time;
         if (timeSpent <= 1000) {
-            time = String.format("%.3f", timeSpent);
+            time = "%.3f".formatted(timeSpent);
         } else if (timeSpent <= 5_000) {
-            time = ANSIColors.yellow(String.format("%.0f", timeSpent));
+            time = ANSIColors.yellow("%.0f".formatted(timeSpent));
         } else {
-            time = ANSIColors.red(String.format("%.0f", timeSpent));
+            time = ANSIColors.red("%.0f".formatted(timeSpent));
         }
-        return String.format("%s ms", time);
+        return "%s ms".formatted(time);
     }
 
     @SuppressWarnings("PMD.SystemPrintln")
@@ -34,8 +47,11 @@ public final class SolutionUtils {
         final V answer = timed.result();
         final String duration = printDuration(timed.duration());
         System.out.println(
-                String.format(
-                        "%s : %s, took: %s", prefix, ANSIColors.bold(answer.toString()), duration));
+                "%s: %s, took %s"
+                        .formatted(
+                                prefix,
+                                ANSIColors.white(ANSIColors.bold(answer.toString())),
+                                duration));
         return answer;
     }
 
@@ -60,9 +76,12 @@ public final class SolutionUtils {
             final Object answer =
                     quest.getClass().getMethod(sample.method(), List.class).invoke(quest, input);
             assert Objects.equals(sample.expected(), String.valueOf(answer))
-                    : String.format(
-                            "FAIL '%s(%s)'. Expected: '%s', got '%s'",
-                            sample.method(), input, sample.expected(), String.valueOf(answer));
+                    : "FAIL '%s(%s)'. Expected: '%s', got '%s'"
+                            .formatted(
+                                    sample.method(),
+                                    input,
+                                    sample.expected(),
+                                    String.valueOf(answer));
         } catch (IllegalAccessException
                 | InvocationTargetException
                 | NoSuchMethodException

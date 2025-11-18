@@ -81,6 +81,15 @@ public final class ECData {
         return SystemUtils.readFirstLineIfExists(getAnswerFile(event, quest, part));
     }
 
+    public static Path getTitleFile(final int event, final int quest) {
+        final String name = "%d_%02d.txt".formatted(event, quest);
+        return getEverybodyCodesDir().resolve("titles").resolve(name);
+    }
+
+    public static Optional<String> getTitle(final int event, final int quest) {
+        return SystemUtils.readFirstLineIfExists(getTitleFile(event, quest));
+    }
+
     private static boolean isOsWindows() {
         return getOsName().startsWith("Windows");
     }

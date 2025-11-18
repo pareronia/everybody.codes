@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 public record Quest(
         int event,
         int quest,
+        Optional<String> title,
         Optional<String> expected1,
         Optional<String> expected2,
         Optional<String> expected3) {
@@ -20,6 +21,7 @@ public record Quest(
         return new Quest(
                 event,
                 quest,
+                ECData.getTitle(event, quest),
                 ECData.getAnswer(event, quest, 1),
                 ECData.getAnswer(event, quest, 2),
                 ECData.getAnswer(event, quest, 3));

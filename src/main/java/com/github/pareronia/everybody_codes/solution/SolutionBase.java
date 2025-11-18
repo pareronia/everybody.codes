@@ -36,8 +36,9 @@ public abstract class SolutionBase<Output1, Output2, Output3> implements LoggerE
     }
 
     protected void run() {
-        SolutionUtils.runSamples(this.getClass());
+        SolutionUtils.printTitle(quest.event(), quest.quest(), quest.title());
 
+        SolutionUtils.runSamples(this.getClass());
         this.samples();
 
         final List<String> input1 = quest.getInput(1);
