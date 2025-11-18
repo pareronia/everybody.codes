@@ -1,5 +1,7 @@
 package com.github.pareronia.everybody_codes;
 
+import static com.github.pareronia.everybody_codes.utils.IntegerSequence.Range.range;
+
 import com.github.pareronia.everybody_codes.solution.Sample;
 import com.github.pareronia.everybody_codes.solution.Samples;
 import com.github.pareronia.everybody_codes.solution.SolutionBase;
@@ -7,7 +9,6 @@ import com.github.pareronia.everybody_codes.utils.StringUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
 public final class Quest2024_01 extends SolutionBase<Long, Long, Long> {
@@ -41,7 +42,8 @@ public final class Quest2024_01 extends SolutionBase<Long, Long, Long> {
                         .sum();
             }
         }
-        return IntStream.iterate(0, i -> i < inputs.getFirst().length(), i -> i + groupSize)
+        return range(0, inputs.getFirst().length(), groupSize)
+                .intStream()
                 .mapToObj(i -> inputs.getFirst().substring(i, i + groupSize))
                 .mapToLong(Potions::getPotions)
                 .sum();

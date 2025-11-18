@@ -1,5 +1,8 @@
 package com.github.pareronia.everybody_codes;
 
+import static com.github.pareronia.everybody_codes.utils.IntegerSequence.Range.range;
+import static com.github.pareronia.everybody_codes.utils.IntegerSequence.Range.rangeClosed;
+
 import com.github.pareronia.everybody_codes.solution.Sample;
 import com.github.pareronia.everybody_codes.solution.Samples;
 import com.github.pareronia.everybody_codes.solution.SolutionBase;
@@ -11,7 +14,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
-import java.util.stream.IntStream;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
 public final class Quest02_1 extends SolutionBase<Integer, Integer, String> {
@@ -174,7 +176,8 @@ public final class Quest02_1 extends SolutionBase<Integer, Integer, String> {
     public Integer solvePart1(final List<String> inputs) {
         final List<List<String>> blocks = StringUtils.toBlocks(inputs);
         final Machine machine = Machine.fromInput(blocks.getFirst());
-        return IntStream.range(0, blocks.getLast().size())
+        return range(blocks.getLast().size())
+                .intStream()
                 .map(i -> machine.toss(blocks.getLast().get(i), i + 1))
                 .sum();
     }
@@ -186,7 +189,8 @@ public final class Quest02_1 extends SolutionBase<Integer, Integer, String> {
         @SuppressWarnings("PMD.LongVariable")
         final ToIntFunction<String> bestScoreForSequence =
                 tokens ->
-                        IntStream.rangeClosed(1, machine.maxToss())
+                        rangeClosed(1, machine.maxToss())
+                                .intStream()
                                 .map(i -> machine.toss(tokens, i))
                                 .max()
                                 .getAsInt();

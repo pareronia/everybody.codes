@@ -6,6 +6,7 @@ import com.github.pareronia.everybody_codes.graph.BFS;
 import com.github.pareronia.everybody_codes.solution.Sample;
 import com.github.pareronia.everybody_codes.solution.Samples;
 import com.github.pareronia.everybody_codes.solution.SolutionBase;
+import com.github.pareronia.everybody_codes.utils.IntegerSequence.Range;
 import com.github.pareronia.everybody_codes.utils.StringUtils;
 
 import java.util.HashMap;
@@ -13,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
 public final class Quest2025_09 extends SolutionBase<Integer, Integer, Integer> {
@@ -125,7 +125,7 @@ public final class Quest2025_09 extends SolutionBase<Integer, Integer, Integer> 
         final List<String> dnas =
                 input.stream().map(s -> StringUtils.splitOnce(s, ":").right()).toList();
         final Map<Integer, Set<Integer>> edges = new HashMap<>();
-        final int[] children = IntStream.range(0, dnas.size()).toArray();
+        final int[] children = Range.range(dnas.size()).toArray();
         for (int i = 0; i < dnas.size(); i++) {
             for (int j = i + 1; j < dnas.size(); j++) {
                 for (int k = j + 1; k < dnas.size(); k++) {

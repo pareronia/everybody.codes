@@ -1,5 +1,7 @@
 package com.github.pareronia.everybody_codes;
 
+import static com.github.pareronia.everybody_codes.utils.IntegerSequence.Range.range;
+
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 
@@ -12,7 +14,6 @@ import com.github.pareronia.everybody_codes.utils.StringUtils.StringSplit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.IntStream;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
 public final class Quest2025_05 extends SolutionBase<Long, Long, Long> {
@@ -83,7 +84,7 @@ public final class Quest2025_05 extends SolutionBase<Long, Long, Long> {
                         .thenComparing(Sword::levels)
                         .thenComparing(Sword::sid)
                         .reversed());
-        return IntStream.range(0, swords.size()).mapToLong(i -> (i + 1) * swords.get(i).sid).sum();
+        return range(swords.size()).intStream().mapToLong(i -> (i + 1) * swords.get(i).sid).sum();
     }
 
     @Samples({
@@ -104,8 +105,8 @@ public final class Quest2025_05 extends SolutionBase<Long, Long, Long> {
             final List<Integer> spine = spine(nums);
             @SuppressWarnings({"PMD.AssignmentInOperand", "PMD.UnusedAssignment"})
             final String quality =
-                    IntStream.iterate(1, i -> i < spine.size(), i -> i += 3)
-                            .mapToObj(i -> String.valueOf(spine.get(i)))
+                    range(1, spine.size(), 3).stream()
+                            .map(i -> String.valueOf(spine.get(i)))
                             .collect(joining());
             return new Sword(
                     Integer.parseInt(split.left()),
@@ -146,7 +147,7 @@ public final class Quest2025_05 extends SolutionBase<Long, Long, Long> {
                 for (int i = 0; i < spine.size(); i += 3) {
                     final int row = i;
                     final String lvl =
-                            IntStream.range(0, 3)
+                            range(3).intStream()
                                     .mapToObj(j -> spine.get(row + j))
                                     .filter(s -> s != null)
                                     .map(String::valueOf)

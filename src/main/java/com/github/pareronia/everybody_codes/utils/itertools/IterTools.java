@@ -1,5 +1,7 @@
 package com.github.pareronia.everybody_codes.utils.itertools;
 
+import com.github.pareronia.everybody_codes.utils.IntegerSequence.Range;
+
 import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -21,6 +23,10 @@ public final class IterTools {
 
     public static <T> IterToolsIterator<Pair<T>> pairwise(final Stream<T> stream) {
         return pairwise(stream.iterator());
+    }
+
+    public static IterToolsIterator<Pair<Integer>> pairwise(final Range range) {
+        return pairwise(range.iterator());
     }
 
     public static <T> IterToolsIterator<Pair<T>> pairwise(final Iterator<T> iterator) {

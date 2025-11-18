@@ -1,15 +1,14 @@
 package com.github.pareronia.everybody_codes;
 
+import static com.github.pareronia.everybody_codes.utils.IntegerSequence.Range.range;
+
 import com.github.pareronia.everybody_codes.solution.Sample;
 import com.github.pareronia.everybody_codes.solution.Samples;
 import com.github.pareronia.everybody_codes.solution.SolutionBase;
 import com.github.pareronia.everybody_codes.utils.itertools.IterTools;
-import com.github.pareronia.everybody_codes.utils.itertools.Pair;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
 public final class Quest2025_11 extends SolutionBase<Long, Long, Long> {
@@ -56,7 +55,7 @@ public final class Quest2025_11 extends SolutionBase<Long, Long, Long> {
         int rounds = this.makeNonDecreasing(ducks);
         while (rounds < 10) {
             final long changed =
-                    pairwise(ducks)
+                    IterTools.pairwise(range(ducks.length)).stream()
                             .filter(pair -> ducks[pair.first()] < ducks[pair.second()])
                             .map(
                                     pair -> {
@@ -70,7 +69,7 @@ public final class Quest2025_11 extends SolutionBase<Long, Long, Long> {
             }
             rounds++;
         }
-        return IntStream.range(0, ducks.length).mapToLong(i -> (i + 1) * ducks[i]).sum();
+        return range(ducks.length).intStream().mapToLong(i -> (i + 1) * ducks[i]).sum();
     }
 
     @Override
@@ -86,15 +85,11 @@ public final class Quest2025_11 extends SolutionBase<Long, Long, Long> {
         return this.solvePart2(input);
     }
 
-    private Stream<Pair<Integer>> pairwise(final long... ducks) {
-        return IterTools.pairwise(Stream.iterate(0, i -> i < ducks.length, i -> i + 1)).stream();
-    }
-
     private int makeNonDecreasing(final long... ducks) {
         int rounds = 0;
         while (true) {
             final long changed =
-                    pairwise(ducks)
+                    IterTools.pairwise(range(ducks.length)).stream()
                             .filter(pair -> ducks[pair.first()] > ducks[pair.second()])
                             .map(
                                     pair -> {
