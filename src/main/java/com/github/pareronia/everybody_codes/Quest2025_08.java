@@ -1,10 +1,10 @@
 package com.github.pareronia.everybody_codes;
 
 import com.github.pareronia.everybody_codes.solution.SolutionBase;
-import com.github.pareronia.everybody_codes.utils.IterTools;
-import com.github.pareronia.everybody_codes.utils.IterTools.IterToolsIterator;
-import com.github.pareronia.everybody_codes.utils.IterTools.Pair;
 import com.github.pareronia.everybody_codes.utils.StringUtils;
+import com.github.pareronia.everybody_codes.utils.itertools.IterTools;
+import com.github.pareronia.everybody_codes.utils.itertools.IterToolsIterator;
+import com.github.pareronia.everybody_codes.utils.itertools.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;

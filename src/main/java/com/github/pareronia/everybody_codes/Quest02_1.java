@@ -3,8 +3,8 @@ package com.github.pareronia.everybody_codes;
 import com.github.pareronia.everybody_codes.solution.Sample;
 import com.github.pareronia.everybody_codes.solution.Samples;
 import com.github.pareronia.everybody_codes.solution.SolutionBase;
-import com.github.pareronia.everybody_codes.utils.IterTools;
 import com.github.pareronia.everybody_codes.utils.StringUtils;
+import com.github.pareronia.everybody_codes.utils.itertools.IterTools;
 
 import java.util.Arrays;
 import java.util.Iterator;
