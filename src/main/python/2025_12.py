@@ -3,21 +3,19 @@
 # everybody.codes 2025 Quest 12
 #
 
+import operator
 import sys
 from collections import deque
-from collections.abc import Callable
-from collections.abc import Iterator
-from typing import TypeVar
+from functools import reduce
 
 from ec.common import InputData
 from ec.common import SolutionBase
 from ec.common import ec_samples
-from ec.common import log
 
-T = TypeVar("T")
 Output1 = int
 Output2 = int
 Output3 = int
+Cell = tuple[int, int]
 
 TEST1 = """\
 989601
@@ -58,107 +56,69 @@ TEST4 = """\
 """
 
 
-def flood_fill(
-    start: T,
-    adjacent: Callable[[T], Iterator[T]],
-) -> set[T]:
-    q: deque[T] = deque()
-    q.append(start)
-    seen: set[T] = set()
-    seen.add(start)
-    while len(q) != 0:
-        node = q.popleft()
-        for n in adjacent(node):
-            if n in seen:
-                continue
-            seen.add(n)
-            q.append(n)
-    return seen
-
-
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def adjacent(
+    def ignite(
         self,
+        starts: set[Cell],
         grid: tuple[str, ...],
-        cell: tuple[int, int],
-        seen: set[tuple[int, int]] | None = None,
-    ) -> Iterator[tuple[int, int]]:
-        for dr, dc in {(0, 1), (0, -1), (1, 0), (-1, 0)}:
-            r, c = cell
-            rr, cc = r + dr, c + dc
-            if (
-                0 <= rr < len(grid)
-                and 0 <= cc < len(grid[0])
-                and grid[r][c] >= grid[rr][cc]
-                and not (seen is not None and (r, c) in seen)
-            ):
-                yield (rr, cc)
+        exclude: set[Cell] | None = None,
+    ) -> set[Cell]:
+        q: deque[Cell] = deque(starts)
+        seen = starts | (set(exclude) if exclude is not None else set())
+        while len(q) != 0:
+            r, c = q.popleft()
+            for dr, dc in {(0, 1), (0, -1), (1, 0), (-1, 0)}:
+                rr, cc = r + dr, c + dc
+                if (
+                    0 <= rr < len(grid)
+                    and 0 <= cc < len(grid[0])
+                    and grid[r][c] >= grid[rr][cc]
+                    and (rr, cc) not in seen
+                ):
+                    seen.add((rr, cc))
+                    q.append((rr, cc))
+        return seen
 
     def part_1(self, input_data: InputData) -> Output1:
-        return len(flood_fill((0, 0), lambda x: self.adjacent(input_data, x)))
+        return len(self.ignite({(0, 0)}, input_data))
 
     def part_2(self, input_data: InputData) -> Output2:
         return len(
-            flood_fill((0, 0), lambda x: self.adjacent(input_data, x))
-            | flood_fill(
-                (len(input_data) - 1, len(input_data[0]) - 1),
-                lambda x: self.adjacent(input_data, x),
+            self.ignite(
+                {(0, 0), (len(input_data) - 1, len(input_data[0]) - 1)},
+                input_data,
             )
         )
 
     def part_3(self, input_data: InputData) -> Output3:
-        first = [
-            (
-                (r, c),
-                len(
-                    flood_fill((r, c), lambda x: self.adjacent(input_data, x))
+        def find_best(exploded: set[Cell]) -> set[Cell]:
+            best = (0, set[Cell]())
+            seen = set(exploded)
+            for _, barrel in sorted(
+                (
+                    (ch, (r, c))
+                    for r, line in enumerate(input_data)
+                    for c, ch in enumerate(line)
                 ),
+                reverse=True,
+            ):
+                if barrel in seen:
+                    continue
+                new_exploded = (
+                    self.ignite({barrel}, input_data, exploded) - exploded
+                )
+                seen |= new_exploded
+                if len(new_exploded) > best[0]:
+                    best = (len(new_exploded), new_exploded)
+            return best[1]
+
+        return len(
+            reduce(
+                lambda seen, _: operator.ior(seen, find_best(seen)),
+                range(3),
+                set(),
             )
-            for r in range(len(input_data))
-            for c in range(len(input_data[0]))
-        ]
-        log("first")
-        first.sort(key=lambda x: x[1])
-        seen = flood_fill(first[-1][0], lambda x: self.adjacent(input_data, x))
-        second = [
-            (
-                (r, c),
-                len(
-                    seen
-                    | flood_fill(
-                        (r, c), lambda x: self.adjacent(input_data, x, seen)
-                    )
-                ),
-            )
-            for r in range(len(input_data))
-            for c in range(len(input_data[0]))
-            if (r, c) not in seen
-        ]
-        log("second")
-        second.sort(key=lambda x: x[1])
-        seen |= flood_fill(
-            second[-1][0], lambda x: self.adjacent(input_data, x, seen)
         )
-        third = [
-            (
-                (r, c),
-                len(
-                    seen
-                    | flood_fill(
-                        (r, c), lambda x: self.adjacent(input_data, x, seen)
-                    )
-                ),
-            )
-            for r in range(len(input_data))
-            for c in range(len(input_data[0]))
-            if (r, c) not in seen
-        ]
-        log("third")
-        third.sort(key=lambda x: x[1])
-        seen |= flood_fill(
-            third[-1][0], lambda x: self.adjacent(input_data, x, seen)
-        )
-        return len(seen)
 
     @ec_samples(
         (
@@ -179,5 +139,7 @@ def main() -> None:
     solution.run(sys.argv)
 
 
+if __name__ == "__main__":
+    main()
 if __name__ == "__main__":
     main()
