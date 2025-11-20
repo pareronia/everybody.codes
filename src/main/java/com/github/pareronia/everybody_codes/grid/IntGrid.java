@@ -1,6 +1,9 @@
 package com.github.pareronia.everybody_codes.grid;
 
+import com.github.pareronia.everybody_codes.utils.StringUtils;
+
 import java.util.Arrays;
+import java.util.List;
 
 public class IntGrid implements Grid<Integer> {
 
@@ -9,6 +12,18 @@ public class IntGrid implements Grid<Integer> {
     @SuppressWarnings("PMD.UseVarargs")
     public IntGrid(final int[][] values) {
         this.values = Arrays.stream(values).map(int[]::clone).toArray(int[][]::new);
+    }
+
+    public static IntGrid from(final List<String> strings) {
+        final int[][] values = new int[strings.size()][strings.get(0).length()];
+        strings.stream()
+                .map(
+                        s ->
+                                StringUtils.asCharacterStream(s)
+                                        .mapToInt(ch -> Integer.parseInt(String.valueOf(ch)))
+                                        .toArray())
+                .toArray(a -> values);
+        return new IntGrid(values);
     }
 
     @Override

@@ -10,6 +10,14 @@ public interface Grid<T> {
 
     int getWidth();
 
+    default int getMaxRowIndex() {
+        return this.getHeight() - 1;
+    }
+
+    default int getMaxColIndex() {
+        return this.getWidth() - 1;
+    }
+
     T getValue(Cell cell);
 
     void setValue(Cell cell, T value);

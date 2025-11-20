@@ -2,6 +2,8 @@ package com.github.pareronia.everybody_codes.grid;
 
 import com.github.pareronia.everybody_codes.geometry.Direction;
 
+import java.util.stream.Stream;
+
 public record Cell(int row, int col) {
 
     @SuppressWarnings("PMD.ShortMethodName")
@@ -12,5 +14,9 @@ public record Cell(int row, int col) {
     @SuppressWarnings("PMD.ShortMethodName")
     public Cell at(final Direction direction) {
         return new Cell(this.row - direction.getY(), this.col + direction.getX());
+    }
+
+    public Stream<Cell> capitalNeighbours() {
+        return Direction.CAPITAL.stream().map(this::at);
     }
 }
