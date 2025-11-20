@@ -1,6 +1,8 @@
 set dotenv-filename := ".win-env"
 
 alias l := lint
+alias lp := lint-python
+alias lj := lint-java
 
 source_dir := "src/main/python"
 java_source_dir := "src/main/java"
@@ -67,9 +69,17 @@ pmd: (msg-blue "Running pmd check")
 java-format-check: (msg-blue "Running java format check")
     @find {{ java_source_dir }} -name "*.java" | xargs {{ google-java-format }} --aosp --dry-run --set-exit-if-changed 
 
+# Linting: python
+[group("linting")]
+lint-python: ruff-check vulture ruff-format-check mypy
+
+# Linting: java
+[group("linting")]
+lint-java: java-format-check pmd
+
 # Linting: all
 [group("linting")]
-lint: ruff-check vulture ruff-format-check mypy java-format-check pmd
+lint: lint-python lint-java
 
 # Run all Quests - python
 [group("python")]
