@@ -30,37 +30,31 @@ TEST2 = """\
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def solve(self, input_data: InputData, positions: int) -> int:
-        d = [(1, 1)]
-        for i, line in enumerate(input_data):
+    def solve(self, input_data: tuple[str, ...], positions: int) -> int:
+        d = [(1, 1, 1)]
+        append, before, after = True, 0, 0
+        for line in input_data:
             start, end = map(int, line.split("-"))
-            if i % 2 == 0:
-                d.append((start, end))
+            sz = abs(start - end) + 1
+            if append:
+                d.append((start, end, sz))
+                after += sz
             else:
-                d.insert(0, (end, start))
-        home_idx = d.index((1, 1))
-        home = sum(abs(d[i][0] - d[i][1]) + 1 for i in range(home_idx))
-        size = sum(abs(start - end) + 1 for start, end in d)
-        target = (home + positions) % size
-        cnt = 0
-        for i in range(len(d)):
-            start, end = d[i % len(d)]
-            nxt = cnt + abs(start - end) + 1
+                d.insert(0, (end, start, sz))
+                before += sz
+            append = not append
+        tot, target = 0, (before + positions) % (before + 1 + after)
+        for start, end, sz in d:
+            nxt = tot + sz
             if nxt > target:
-                if start < end:
-                    return start + target - cnt
-                return start - (target - cnt)
-            cnt = nxt
+                return start + (
+                    target - tot if start < end else -(target - tot)
+                )
+            tot = nxt
         raise AssertionError
 
     def part_1(self, input_data: InputData) -> Output1:
-        d = [1]
-        for i, line in enumerate(input_data):
-            if i % 2 == 0:
-                d.append(int(line))
-            else:
-                d.insert(0, int(line))
-        return d[(d.index(1) + 2025) % len(d)]
+        return self.solve(tuple(s + "-" + s for s in input_data), 2025)
 
     def part_2(self, input_data: InputData) -> Output2:
         return self.solve(input_data, 20252025)
