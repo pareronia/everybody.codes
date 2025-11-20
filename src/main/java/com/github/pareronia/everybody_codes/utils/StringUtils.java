@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+@SuppressWarnings("PMD.TooManyMethods")
 public final class StringUtils {
 
     public static final String EMPTY = "";
@@ -27,6 +28,11 @@ public final class StringUtils {
     public static StringSplit<String> splitOnce(final String string, final String regex) {
         final String[] splits = Objects.requireNonNull(string).split(regex);
         return new StringSplit<>(splits[0], splits[1]);
+    }
+
+    public static StringSplit<Long> splitOnceToLong(final String string, final String regex) {
+        final String[] splits = Objects.requireNonNull(string).split(regex);
+        return new StringSplit<>(Long.parseLong(splits[0]), Long.parseLong(splits[1]));
     }
 
     public static StringSplit<Integer> splitOnceToInt(final String string, final String regex) {

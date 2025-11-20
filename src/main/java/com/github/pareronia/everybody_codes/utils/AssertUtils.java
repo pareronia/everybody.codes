@@ -31,4 +31,8 @@ public final class AssertUtils {
     private static IllegalArgumentException buildException(final Supplier<String> message) {
         return new IllegalArgumentException(message.get());
     }
+
+    public static IllegalStateException unreachable() {
+        return new IllegalStateException("Should not happen");
+    }
 }
