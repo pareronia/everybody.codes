@@ -7,34 +7,41 @@ from typing import Generic
 from typing import TypeVar
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable
+    from collections.abc import Iterator
 
 T = TypeVar("T")
+U = TypeVar("U")
 
 
 class GameOfLife:
     def __init__(
-        self, alive: Iterable[T], universe: Universe[T], rules: Rules[T]
+        self,
+        alive: U,
+        universe: Universe[T, U],
+        rules: Rules[T, U],
+        convert: Callable[[Iterator[T]], U],
     ) -> None:
         self.alive = alive
         self.universe = universe
         self.rules = rules
+        self.convert = convert
 
     def next_generation(self) -> None:
-        self.alive = {
-            cell
-            for cell, count in self.universe.neighbour_count(
-                self.alive
-            ).items()
-            if self.rules.alive(cell, count, self.alive)
-        }
+        self.alive = self.convert(
+            (
+                cell
+                for cell, count in self.universe.neighbour_count(self.alive)
+                if self.rules.alive(cell, count, self.alive)
+            )
+        )
 
-    class Universe(ABC, Generic[T]):
+    class Universe(ABC, Generic[T, U]):
         @abstractmethod
-        def neighbour_count(self, alive: Iterable[T]) -> dict[T, int]:
+        def neighbour_count(self, alive: U) -> Iterator[tuple[T, int]]:
             pass
 
-    class Rules(ABC, Generic[T]):
+    class Rules(ABC, Generic[T, U]):
         @abstractmethod
-        def alive(self, cell: T, count: int, alive: Iterable[T]) -> bool:
+        def alive(self, cell: T, count: int, alive: U) -> bool:
             pass
