@@ -414,6 +414,13 @@ class Turn(Enum):
         obj.letter = letter
         return obj
 
+    @classmethod
+    def from_str(cls, s: str) -> Turn:
+        for v in Turn:
+            if v.letter is not None and v.letter == s:
+                return v
+        raise ValueError
+
     LEFT = (270, "L")
     RIGHT = (90, "R")
     AROUND = (180, None)
