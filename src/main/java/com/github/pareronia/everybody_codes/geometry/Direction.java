@@ -16,7 +16,7 @@ public enum Direction {
     DOWN(0, -1, Optional.of('D')),
     LEFT_AND_DOWN(-1, -1, Optional.empty()),
     LEFT(-1, 0, Optional.of('L')),
-	LEFT_AND_UP(-1, 1, Optional.empty());
+    LEFT_AND_UP(-1, 1, Optional.empty());
 
     public static final Set<Direction> CAPITAL = EnumSet.of(UP, RIGHT, DOWN, LEFT);
 
@@ -46,6 +46,14 @@ public enum Direction {
 
     public int getY() {
         return y;
+    }
+
+    public boolean isHorizontal() {
+        return this == LEFT || this == RIGHT;
+    }
+
+    public boolean isVertical() {
+        return this == UP || this == DOWN;
     }
 
     public Direction turn(final Turn turn) {

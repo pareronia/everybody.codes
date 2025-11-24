@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collector;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -16,6 +17,14 @@ public final class StringUtils {
 
     public static Stream<Character> asCharacterStream(final String string) {
         return IntStream.range(0, Objects.requireNonNull(string).length()).mapToObj(string::charAt);
+    }
+
+    public static Collector<Character, StringBuilder, String> toAString() {
+        return Collector.of(
+                StringBuilder::new,
+                StringBuilder::append,
+                StringBuilder::append,
+                StringBuilder::toString);
     }
 
     public static int count(final String string, final char chr) {

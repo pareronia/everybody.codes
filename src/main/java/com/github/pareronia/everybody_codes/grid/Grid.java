@@ -1,5 +1,10 @@
 package com.github.pareronia.everybody_codes.grid;
 
+import static java.util.stream.Collectors.joining;
+
+import com.github.pareronia.everybody_codes.utils.itertools.IterTools;
+
+import java.util.Iterator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
@@ -21,6 +26,29 @@ public interface Grid<T> {
     T getValue(Cell cell);
 
     void setValue(Cell cell, T value);
+
+    String getRowAsString(int row);
+
+    default Stream<String> getRowsAsStrings() {
+        return IterTools.stream(
+                new Iterator<>() {
+                    private int row;
+
+                    @Override
+                    public boolean hasNext() {
+                        return row <= Grid.this.getMaxRowIndex();
+                    }
+
+                    @Override
+                    public String next() {
+                        return Grid.this.getRowAsString(row++);
+                    }
+                });
+    }
+
+    default String asString() {
+        return this.getRowsAsStrings().collect(joining(System.lineSeparator()));
+    }
 
     default boolean isInBounds(final Cell cell) {
         return 0 <= cell.row()

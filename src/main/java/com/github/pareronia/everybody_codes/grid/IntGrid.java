@@ -1,5 +1,8 @@
 package com.github.pareronia.everybody_codes.grid;
 
+import static com.github.pareronia.everybody_codes.utils.StringUtils.toAString;
+
+import com.github.pareronia.everybody_codes.utils.AssertUtils;
 import com.github.pareronia.everybody_codes.utils.StringUtils;
 
 import java.util.Arrays;
@@ -11,6 +14,11 @@ public class IntGrid implements Grid<Integer> {
 
     @SuppressWarnings("PMD.UseVarargs")
     public IntGrid(final int[][] values) {
+        for (final int[] row : values) {
+            for (final int v : row) {
+                AssertUtils.assertTrue(0 <= v && v <= 9);
+            }
+        }
         this.values = Arrays.stream(values).map(int[]::clone).toArray(int[][]::new);
     }
 
@@ -45,5 +53,12 @@ public class IntGrid implements Grid<Integer> {
     @Override
     public void setValue(final Cell cell, final Integer value) {
         this.values[cell.row()][cell.col()] = value;
+    }
+
+    @Override
+    public String getRowAsString(final int row) {
+        return Arrays.stream(values[row])
+                .mapToObj(n -> Character.forDigit(n, 10))
+                .collect(toAString());
     }
 }
