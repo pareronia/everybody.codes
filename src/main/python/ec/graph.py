@@ -43,6 +43,15 @@ def bfs(
     is_end: Callable[[T], bool],
     adjacent: Callable[[T], Iterator[T]],
 ) -> int:
+    return bfs_with_cost(start, is_end, adjacent, lambda _, __: 1)
+
+
+def bfs_with_cost(
+    start: T,
+    is_end: Callable[[T], bool],
+    adjacent: Callable[[T], Iterator[T]],
+    cost: Callable[[T, T], int],
+) -> int:
     q: deque[tuple[int, T]] = deque()
     q.append((0, start))
     seen: set[T] = set()
@@ -55,7 +64,7 @@ def bfs(
             if n in seen:
                 continue
             seen.add(n)
-            q.append((distance + 1, n))
+            q.append((distance + cost(node, n), n))
     msg = "unsolvable"
     raise RuntimeError(msg)
 

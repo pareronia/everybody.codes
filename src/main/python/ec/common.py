@@ -295,6 +295,9 @@ class Direction(Enum):
             Direction.LEFT_AND_UP,
         }
 
+    def is_horizontal(self) -> bool:
+        return self in (Direction.LEFT, Direction.RIGHT)
+
     def turn(self, turn: Turn) -> Direction:
         if self == Direction.UP:
             return (
