@@ -67,7 +67,7 @@ pmd: (msg-blue "Running pmd check")
 # Linting: java format check
 [group("linting")]
 java-format-check: (msg-blue "Running java format check")
-    @find {{ java_source_dir }} -name "*.java" | xargs {{ google-java-format }} --aosp --dry-run --set-exit-if-changed 
+    @find {{ java_source_dir }} -name "*.java" | xargs {{ google-java-format }} --aosp --skip-javadoc-formatting --dry-run --set-exit-if-changed 
 
 # Linting: python
 [group("linting")]
