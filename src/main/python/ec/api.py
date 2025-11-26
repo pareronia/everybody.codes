@@ -126,7 +126,7 @@ class API:
         answer3: ReadOnly[str]
 
     API_URL = "https://everybody.codes/api"
-    ASSET_URL = "https://everybody-codes.b-cdn.net/assets"
+    ASSET_URL = "https://everybody.codes/assets"
     USER_AGENT = (
         "github:pareronia https://github.com/pareronia/everybody.codes"
     )
