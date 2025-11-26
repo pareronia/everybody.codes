@@ -98,15 +98,18 @@ def dijkstra(
     is_end: Callable[[T], bool],
     adjacent: Callable[[T], Iterator[T]],
     get_cost: Callable[[T, T], int],
+    limit: int | None = None,
 ) -> tuple[int, dict[T, int], list[T]]:
     q: PriorityQueue[tuple[int, T]] = PriorityQueue()
     q.put((0, start))
     best: defaultdict[T, int] = defaultdict(lambda: sys.maxsize)
     best[start] = 0
     parent: dict[T, T] = {}
-    path = []
+    path = list[T]()
     while not q.empty():
         cost, node = q.get()
+        if limit is not None and cost > limit:
+            return -1, best, path
         if is_end(node):
             path = [node]
             curr = node
