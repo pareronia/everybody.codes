@@ -53,7 +53,7 @@
 |[15](https://everybody.codes/event/2025/quests/15)|[✓](src/main/python/2025_15.py)|[✓](src/main/java/com/github/pareronia/everybody_codes/Quest2025_15.java)|&nbsp;&nbsp;65&nbsp;/&nbsp;&nbsp;&nbsp;60&nbsp;/&nbsp;&nbsp;209|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;41&nbsp;/&nbsp;&nbsp;&nbsp;-|
 |[16](https://everybody.codes/event/2025/quests/16)|[✓](src/main/python/2025_16.py)|[✓](src/main/java/com/github/pareronia/everybody_codes/Quest2025_16.java)|&nbsp;120&nbsp;/&nbsp;&nbsp;130&nbsp;/&nbsp;&nbsp;131|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;20|
 |[17](https://everybody.codes/event/2025/quests/17)|[✓](src/main/python/2025_17.py)|[✓](src/main/java/com/github/pareronia/everybody_codes/Quest2025_17.java)|&nbsp;&nbsp;69&nbsp;/&nbsp;&nbsp;&nbsp;74&nbsp;/&nbsp;&nbsp;100|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;27&nbsp;/&nbsp;&nbsp;51|
-|[18](https://everybody.codes/event/2025/quests/18)|||||
+|[18](https://everybody.codes/event/2025/quests/18)|[✓](src/main/python/2025_18.py)||&nbsp;&nbsp;79&nbsp;/&nbsp;&nbsp;&nbsp;78&nbsp;/&nbsp;&nbsp;108|&nbsp;&nbsp;-&nbsp;/&nbsp;&nbsp;23&nbsp;/&nbsp;&nbsp;43|
 |[19](https://everybody.codes/event/2025/quests/19)|||||
 |[20](https://everybody.codes/event/2025/quests/20)|||||
 <!-- @END:Quests:2025@ -->
