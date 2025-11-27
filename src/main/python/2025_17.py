@@ -4,6 +4,10 @@
 #
 
 import sys
+from collections.abc import Iterator
+from dataclasses import dataclass
+from math import prod
+from typing import Self
 
 from ec.common import Direction
 from ec.common import InputData
@@ -129,6 +133,49 @@ Output3 = int
 Cell = tuple[int, int]
 
 
+@dataclass(frozen=True)
+class Field:
+    grid: tuple[str, ...]
+    volcano: Cell
+    start: Cell | None = None
+
+    @classmethod
+    def from_input(cls, input_data: InputData) -> Self:
+        start = None
+        for r in range(len(input_data)):
+            for c in range(len(input_data[r])):
+                if input_data[r][c] == "S":
+                    start = (r, c)
+                if input_data[r][c] == "@":
+                    volcano = (r, c)
+        return cls(input_data, volcano, start)
+
+    def lava_growth(self, radius: int) -> set[Cell]:
+        inner = (radius - 1) * (radius - 1)
+        outer = radius * radius
+        ans = set[Cell]()
+        for r in range(len(self.grid)):
+            for c in range(len(self.grid[r])):
+                if (r, c) != self.volcano and inner < (self.volcano[0] - r) * (
+                    self.volcano[0] - r
+                ) + (self.volcano[1] - c) * (self.volcano[1] - c) <= outer:
+                    ans.add((r, c))
+        return ans
+
+    def value(self, cells: set[Cell]) -> int:
+        return sum(int(self.grid[r][c]) for r, c in cells)
+
+    def ccw_around_volcano(self, curr: Cell, nxt: Cell) -> bool:
+        return (
+            nxt[0] >= self.volcano[0] and curr[1] < self.volcano[1] <= nxt[1]
+        )
+
+    def cw_around_volcano(self, curr: Cell, nxt: Cell) -> bool:
+        return (
+            nxt[0] >= self.volcano[0] and nxt[1] < self.volcano[1] <= curr[1]
+        )
+
+
 class Solution(SolutionBase[Output1, Output2, Output3]):
     def solve(self, input_data: InputData, radius: int) -> set[Cell]:
         ans = set[Cell]()
@@ -144,70 +191,59 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         return ans
 
     def part_1(self, input_data: InputData) -> Output1:
-        cells = set[Cell]()
-        for radius in range(1, 11):
-            cells |= self.solve(input_data, radius)
-        return sum(int(input_data[r][c]) for r, c in cells)
+        field = Field.from_input(input_data)
+        return sum(field.value(field.lava_growth(r)) for r in range(1, 11))
 
     def part_2(self, input_data: InputData) -> Output2:
-        radius, hi, hi_r = 1, 0, 0
-        while True:
-            cells = self.solve(input_data, radius)
-            damage = sum(int(input_data[r][c]) for r, c in cells)
-            if damage > hi:
-                hi, hi_r = damage, radius
-            if any(
-                r == 0
-                or r == len(input_data) - 1
-                or c == 0
-                or c == len(input_data[0])
-                for r, c in cells
-            ):
-                break
-            radius += 1
-        return hi * hi_r
+        field = Field.from_input(input_data)
+        hi = max(
+            (
+                (radius, field.value(field.lava_growth(radius)))
+                for radius in range(1, len(field.grid) // 2)
+            ),
+            key=lambda x: x[1],
+        )
+        return prod(hi)
 
-    def part_3(self, input_data: InputData) -> Output3:  # noqa:C901
-        height, width = len(input_data), len(input_data[0])
-        for r in range(height):
-            for c in range(width):
-                if input_data[r][c] == "S":
-                    start = (r, c)
-                if input_data[r][c] == "@":
-                    volcano = (r, c)
+    def part_3(self, input_data: InputData) -> Output3:
+        field = Field.from_input(input_data)
+        assert field.start is not None
         radius = 1
-        while volcano[0] + radius < height:
+        while field.volcano[0] + radius < len(field.grid):
+            cells = self.solve(input_data, radius)
 
-            def z(curr: Cell, nxt: Cell, z: int) -> int:
-                if nxt[0] >= volcano[0]:
-                    if curr[1] < volcano[1] <= nxt[1]:
-                        return 1
-                    if nxt[1] < volcano[1] <= curr[1]:
-                        return 0
-                return z
+            def adjacent(
+                node: tuple[Cell, int], lava: set[Cell] = cells
+            ) -> Iterator[tuple[Cell, int]]:
+                cell, z = node
+                for nr, nc in (
+                    (cell[0] - d.y, cell[1] + d.x)
+                    for d in Direction.capitals()
+                ):
+                    if (
+                        0 <= nr < len(field.grid)
+                        and 0 <= nc < len(field.grid[cell[0]])
+                        and (nr, nc) not in lava
+                    ):
+                        new_z = (
+                            1
+                            if field.ccw_around_volcano(cell, (nr, nc))
+                            else 0
+                            if field.cw_around_volcano(cell, (nr, nc))
+                            else z
+                        )
+                        yield ((nr, nc), new_z)
 
             limit = (radius + 1) * 30
-            cells = self.solve(input_data, radius)
             cost, _, _ = dijkstra(
-                start=(start, 0),
-                is_end=lambda node: node == (start, 1),
-                adjacent=lambda node: (
-                    ((nr, nc), z(node[0], (nr, nc), node[1]))
-                    for nr, nc in (
-                        (node[0][0] - d.y, node[0][1] + d.x)
-                        for d in Direction.capitals()
-                    )
-                    if 0 <= nr < height
-                    and 0 <= nc < width
-                    and (nr, nc) not in cells  # noqa:B023
-                ),
+                start=(field.start, 0),
+                is_end=lambda node: node == (field.start, 1),
+                adjacent=adjacent,
                 get_cost=lambda _, nxt: 0
-                if nxt[0] == start
+                if nxt[0] == field.start
                 else int(input_data[nxt[0][0]][nxt[0][1]]),
                 limit=limit,
             )
-            # if ((center[0] + radius + 1, center[1]), 1) not in path:
-            #     raise AssertionError
             if 0 < cost < limit:
                 return cost * radius
             radius += 1
