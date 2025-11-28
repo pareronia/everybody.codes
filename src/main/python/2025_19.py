@@ -8,6 +8,7 @@ from collections import defaultdict
 from collections.abc import Iterator
 from functools import cache
 from math import ceil
+from queue import PriorityQueue
 
 from ec.common import Direction
 from ec.common import InputData
@@ -42,38 +43,7 @@ Position = tuple[int, int]
 
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
-    def part_1(self, input_data: InputData) -> Output1:
-        def adjacent(pos: Position) -> Iterator[Position]:
-            for d in (Direction.RIGHT_AND_UP, Direction.RIGHT_AND_DOWN):
-                nx, ny = pos[0] + d.x, pos[1] + d.y
-                passage = passages.get(nx)
-                if (
-                    nx <= w
-                    and 0 <= ny <= h
-                    and (
-                        passage is None
-                        or passage[0] <= ny <= passage[0] + passage[1]
-                    )
-                ):
-                    yield (nx, ny)
-
-        w, h = 0, 0
-        passages = dict[int, tuple[int, int]]()
-        for line in input_data:
-            x, y, dy = map(int, line.split(","))
-            passages[x] = (y, dy)
-            h = max(h, y + dy)
-            w = max(w, x)
-        w, h = w + 1, h + 1
-        cost, _, _ = dijkstra(
-            start=(0, 0),
-            is_end=lambda pos: pos[0] == w,
-            adjacent=adjacent,
-            get_cost=lambda pos, nxt: 1 if pos[1] < nxt[1] else 0,
-        )
-        return cost
-
-    def part_2(self, input_data: InputData) -> Output2:
+    def solve(self, input_data: InputData) -> int:
         def adjacent(pos: Position) -> Iterator[Position]:
             for d in (Direction.RIGHT_AND_UP, Direction.RIGHT_AND_DOWN):
                 nx, ny = pos[0] + d.x, pos[1] + d.y
@@ -82,8 +52,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
                     nx <= w
                     and 0 <= ny <= h
                     and (
-                        pp is None
-                        or any(p[0] <= ny <= p[0] + p[1] for p in pp)
+                        pp is None or any(p[0] <= ny < p[0] + p[1] for p in pp)
                     )
                 ):
                     yield (nx, ny)
@@ -104,6 +73,12 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         )
         return cost
 
+    def part_1(self, input_data: InputData) -> Output1:
+        return self.solve(input_data)
+
+    def part_2(self, input_data: InputData) -> Output2:
+        return self.solve(input_data)
+
     def part_3(self, input_data: InputData) -> Output3:
         @cache
         def gap_ys(x: int) -> set[int]:
@@ -111,23 +86,9 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             return {
                 y
                 for py, dy in passages[x]
-                for y in range(py, py + dy + 1)
+                for y in range(py, py + dy)
                 if (cx + y) & 1 != 0
             }
-
-        def adjacent(pos: Position) -> Iterator[Position]:
-            x, y = pos
-            cx = comp_x[x]
-            nx = x + 1
-            ncx = comp_x[nx]
-            if nx <= w:
-                for ny in gap_ys(nx):
-                    if abs(ny - y) <= ncx - cx:
-                        yield (nx, ny)
-
-        def get_cost(pos: Position, nxt: Position) -> int:
-            dx, dy = comp_x[nxt[0]] - comp_x[pos[0]], nxt[1] - pos[1]
-            return dy + ceil((dx - dy) / 2)
 
         w = 0
         passages = defaultdict[int, set[tuple[int, int]]](set)
@@ -139,18 +100,28 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
             x = len(sorted(xs)) - 1
             passages[x].add((y, dy))
             w = max(w, x)
-        w = w + 1
-        xs.add(max(xs) + 1)
-        for y, dy in passages[w - 1]:
-            passages[w].add((y, dy))
         comp_x = sorted(xs)
-        cost, _, _ = dijkstra(
-            start=(0, 0),
-            is_end=lambda pos: pos[0] == w,
-            adjacent=adjacent,
-            get_cost=get_cost,
-        )
-        return cost
+        q: PriorityQueue[tuple[int, Position]] = PriorityQueue()
+        q.put((0, (0, 0)))
+        best: defaultdict[Position, int] = defaultdict(lambda: sys.maxsize)
+        best[(0, 0)] = 0
+        while not q.empty():
+            cost, pos = q.get()
+            if pos[0] == w:
+                return cost
+            best_cost = best[pos]
+            x, y = pos
+            nx = x + 1
+            if nx <= w:
+                cdx = comp_x[nx] - comp_x[x]
+                for ny in gap_ys(nx):
+                    dy = ny - y
+                    if abs(dy) <= cdx:
+                        new_cost = best_cost + dy + ceil((cdx - dy) / 2)
+                        if new_cost < best[(nx, ny)]:
+                            best[(nx, ny)] = new_cost
+                            q.put((new_cost, (nx, ny)))
+        raise AssertionError
 
     @ec_samples(
         (
