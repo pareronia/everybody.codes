@@ -3,9 +3,11 @@
 # everybody.codes 2025 Quest 20
 #
 
+import itertools
 import sys
-from collections import deque
 from collections.abc import Iterator
+from dataclasses import dataclass
+from typing import Self
 
 from ec.common import InputData
 from ec.common import SolutionBase
@@ -48,131 +50,127 @@ T####T#TTT##T##T#T#
 .........S.........
 """
 
-Triangle = tuple[int, int, int]
 Cell = tuple[int, int]
+RotatedCell = tuple[Cell, int]
 
 
-class Solution(SolutionBase[Output1, Output2, Output3]):
-    def part_1(self, input_data: InputData) -> Output1:
+def parity(cell: Cell) -> bool:
+    return cell[0] % 2 == cell[1] % 2
+
+
+@dataclass(frozen=True)
+class Triangle:
+    cells: set[Cell]
+    start: Cell
+    end: Cell
+
+    @classmethod
+    def from_input(cls, input_data: InputData) -> Self:
         tr = set[Cell]()
-        for r, line in enumerate(input_data):
-            for c, ch in enumerate(line):
-                if ch == "T":
-                    tr.add((r, c))
-        pairs = set[tuple[Cell, ...]]()
-        for r, c in tr:
-            if (r, c - 1) in tr:
-                s = sorted([(r, c), (r, c - 1)])
-                pairs.add(tuple(s))
-            if (r, c + 1) in tr:
-                s = sorted([(r, c), (r, c + 1)])
-                pairs.add(tuple(s))
-            if r % 2 == c % 2:
-                # down
-                if (r - 1, c) in tr:
-                    s = sorted([(r, c), (r - 1, c)])
-                    pairs.add(tuple(s))
-            elif (r + 1, c) in tr:
-                s = sorted([(r, c), (r + 1, c)])
-                pairs.add(tuple(s))
-        return len(pairs)
+        start = end = (-1, -1)
+        for r in range(len(input_data)):
+            for c in range(len(input_data[r])):
+                match input_data[r][c]:
+                    case "S":
+                        start = (r, c)
+                    case "E":
+                        end = (r, c)
+                    case "T":
+                        pass
+                    case _:
+                        continue
+                tr.add((r, c))
+        return cls(tr, start or None, end)
 
-    def part_2(self, input_data: InputData) -> Output2:
-        tr = set[Cell]()
-        for r, line in enumerate(input_data):
-            for c, ch in enumerate(line):
-                if ch == "S":
-                    start = (r, c)
-                    tr.add((r, c))
-                if ch == "E":
-                    end = (r, c)
-                    tr.add((r, c))
-                if ch == "T":
-                    tr.add((r, c))
-
-        def adjacent(cell: Cell) -> Iterator[Cell]:
-            r, c = cell
-            for dc in (-1, 1):
-                if (r, c + dc) in tr:
-                    yield (r, c + dc)
-            v = (r + (-1 if r % 2 == c % 2 else 1), c)
-            if v in tr:
-                yield v
-
-        return bfs(start, lambda cell: cell == end, adjacent)
-
-    def part_3(self, input_data: InputData) -> Output3:  # noqa:PLR0912,PLR0915,C901
+    @classmethod
+    def from_input_rotate_120(cls, input_data: InputData) -> Self:
         h, w = len(input_data), len(input_data[0])
-        tr = [set[Cell](), set[Cell](), set[Cell]()]
-        end = [(0, 0), (0, 0), (0, 0)]
-        for r in range(h):
-            for c in range(w):
-                if input_data[r][c] == "S":
-                    start = (r, c)
-                    tr[0].add((r, c))
-                if input_data[r][c] == "E":
-                    end[0] = (r, c)
-                    tr[0].add((r, c))
-                if input_data[r][c] == "T":
-                    tr[0].add((r, c))
-        r, c = h - 1, w // 2
-        rrr, ccc = 0, 0
+        tr = set[Cell]()
+        r, c, rrr = h - 1, w // 2, 0
         while r >= 0 and c < w:
-            rr, cc = r, c
+            rr, cc, ccc = r, c, rrr
             while rr >= 0 and cc >= 2 * abs((w // 2) - c):
-                if input_data[rr][cc] == "E":
-                    end[1] = (rrr, ccc)
-                    tr[1].add((rrr, ccc))
-                if input_data[rr][cc] in ("S", "T"):
-                    tr[1].add((rrr, ccc))
-                if rr % 2 == cc % 2:
+                match input_data[rr][cc]:
+                    case "E":
+                        end = (rrr, ccc)
+                        tr.add((rrr, ccc))
+                    case "S" | "T":
+                        tr.add((rrr, ccc))
+                    case _:
+                        pass
+                if parity((rr, cc)):
                     rr -= 1
                 else:
                     cc -= 1
                 ccc += 1
             rrr += 1
-            ccc = rrr
             r, c = r - 1, c + 1
-        rrr, ccc = 0, 0
-        for c in range(w - 1, -1, -2):
-            rr, cc = 0, c
+        return cls(tr, (-1, -1), end)
+
+    @classmethod
+    def from_input_rotate_240(cls, input_data: InputData) -> Self:
+        h, w = len(input_data), len(input_data[0])
+        tr = set[Cell]()
+        for rrr, c in enumerate(range(w - 1, -1, -2)):
+            rr, cc, ccc = 0, c, rrr
             while rr < h and cc >= 0:
-                if input_data[rr][cc] == "E":
-                    end[2] = (rrr, ccc)
-                    tr[2].add((rrr, ccc))
-                if input_data[rr][cc] in ("S", "T"):
-                    tr[2].add((rrr, ccc))
-                if rr % 2 != cc % 2:
-                    rr += 1
-                else:
+                match input_data[rr][cc]:
+                    case "E":
+                        end = (rrr, ccc)
+                        tr.add((rrr, ccc))
+                    case "S" | "T":
+                        tr.add((rrr, ccc))
+                    case _:
+                        pass
+                if parity((rr, cc)):
                     cc -= 1
+                else:
+                    rr += 1
                 ccc += 1
-            rrr += 1
-            ccc = rrr
-        q: deque[tuple[int, int, int, int]] = deque()
-        q.append((0, start[0], start[1], 0))
-        seen: set[tuple[int, int, int]] = set()
-        seen.add((start[0], start[1], 0))
-        while len(q) != 0:
-            distance, r, c, lyr = q.popleft()
-            if (r, c) == end[lyr % 3]:
-                return distance
-            ns = set[tuple[int, int, int]]()
-            nlyr = (lyr + 1) % 3
-            for dc in (-1, 1):
-                if (r, c + dc) in tr[nlyr]:
-                    ns.add((r, c + dc, nlyr))
-            v = (r + (-1 if r % 2 == c % 2 else 1), c)
-            if v in tr[nlyr]:
-                ns.add((v[0], v[1], nlyr))
-            if (r, c) in tr[nlyr]:
-                ns.add((r, c, nlyr))
-            for n in ns:
-                if n in seen:
-                    continue
-                seen.add(n)
-                q.append((distance + 1, *n))
-        raise AssertionError
+        return cls(tr, (-1, -1), end)
+
+
+class Solution(SolutionBase[Output1, Output2, Output3]):
+    def part_1(self, input_data: InputData) -> Output1:
+        triangle = Triangle.from_input(input_data)
+        return sum(
+            sum(
+                (
+                    (r, c + 1) in triangle.cells,
+                    not parity((r, c)) and (r + 1, c) in triangle.cells,
+                )
+            )
+            for r, c in triangle.cells
+        )
+
+    def solve_maze(self, triangles: list[Triangle]) -> int:
+        def adjacent(cell: RotatedCell) -> Iterator[RotatedCell]:
+            (r, c), lyr = cell
+            nlyr = lyr if len(triangles) == 1 else (lyr + 1) % len(triangles)
+            for n in itertools.chain(
+                ((r, c), (r + (-1 if parity((r, c)) else 1), c)),
+                ((r, c + dc) for dc in (-1, 1)),
+            ):
+                if n in triangles[nlyr].cells:
+                    yield (n, nlyr)
+
+        return bfs(
+            start=(triangles[0].start, 0),
+            is_end=lambda cell: cell[0] == triangles[cell[1]].end,
+            adjacent=adjacent,
+        )
+
+    def part_2(self, input_data: InputData) -> Output2:
+        return self.solve_maze([Triangle.from_input(input_data)])
+
+    def part_3(self, input_data: InputData) -> Output3:
+        return self.solve_maze(
+            [
+                Triangle.from_input(input_data),
+                Triangle.from_input_rotate_120(input_data),
+                Triangle.from_input_rotate_240(input_data),
+            ]
+        )
 
     @ec_samples(
         (
