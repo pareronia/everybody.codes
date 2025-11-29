@@ -33,6 +33,8 @@
 
 ## 2025
 
+![2025 Medal](doc/ec2025.jpg "2025 Medal")
+
 <!-- @BEGIN:Quests:2025@ -->
 | Quest | python3 | java | Rank | Points |
 | --- | :---: | :---: | --- | --- |
