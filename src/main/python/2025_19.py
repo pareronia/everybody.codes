@@ -5,16 +5,11 @@
 
 import sys
 from collections import defaultdict
-from collections.abc import Iterator
-from functools import cache
 from math import ceil
-from queue import PriorityQueue
 
-from ec.common import Direction
 from ec.common import InputData
 from ec.common import SolutionBase
 from ec.common import ec_samples
-from ec.graph import dijkstra
 
 Output1 = int
 Output2 = int
@@ -44,34 +39,11 @@ Position = tuple[int, int]
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
     def solve(self, input_data: InputData) -> int:
-        def adjacent(pos: Position) -> Iterator[Position]:
-            for d in (Direction.RIGHT_AND_UP, Direction.RIGHT_AND_DOWN):
-                nx, ny = pos[0] + d.x, pos[1] + d.y
-                pp = passages.get(nx)
-                if (
-                    nx <= w
-                    and 0 <= ny <= h
-                    and (
-                        pp is None or any(p[0] <= ny < p[0] + p[1] for p in pp)
-                    )
-                ):
-                    yield (nx, ny)
-
-        w, h = 0, 0
-        passages = defaultdict[int, set[tuple[int, int]]](set)
+        passages = defaultdict[int, list[int]](list)
         for line in input_data:
-            x, y, dy = map(int, line.split(","))
-            passages[x].add((y, dy))
-            h = max(h, y + dy)
-            w = max(w, x)
-        w, h = w + 1, h + 1
-        cost, _, _ = dijkstra(
-            start=(0, 0),
-            is_end=lambda pos: pos[0] == w,
-            adjacent=adjacent,
-            get_cost=lambda pos, nxt: 1 if pos[1] < nxt[1] else 0,
-        )
-        return cost
+            x, y, _ = (int(n) for n in line.split(","))
+            passages[x].append(y)
+        return max(ceil((x + passages[x][0]) / 2) for x in passages)
 
     def part_1(self, input_data: InputData) -> Output1:
         return self.solve(input_data)
@@ -80,48 +52,7 @@ class Solution(SolutionBase[Output1, Output2, Output3]):
         return self.solve(input_data)
 
     def part_3(self, input_data: InputData) -> Output3:
-        @cache
-        def gap_ys(x: int) -> set[int]:
-            cx = comp_x[x]
-            return {
-                y
-                for py, dy in passages[x]
-                for y in range(py, py + dy)
-                if (cx + y) & 1 != 0
-            }
-
-        w = 0
-        passages = defaultdict[int, set[tuple[int, int]]](set)
-        xs = set[int]()
-        xs.add(0)
-        for line in input_data:
-            x, y, dy = map(int, line.split(","))
-            xs.add(x)
-            x = len(sorted(xs)) - 1
-            passages[x].add((y, dy))
-            w = max(w, x)
-        comp_x = sorted(xs)
-        q: PriorityQueue[tuple[int, Position]] = PriorityQueue()
-        q.put((0, (0, 0)))
-        best: defaultdict[Position, int] = defaultdict(lambda: sys.maxsize)
-        best[(0, 0)] = 0
-        while not q.empty():
-            cost, pos = q.get()
-            if pos[0] == w:
-                return cost
-            best_cost = best[pos]
-            x, y = pos
-            nx = x + 1
-            if nx <= w:
-                cdx = comp_x[nx] - comp_x[x]
-                for ny in gap_ys(nx):
-                    dy = ny - y
-                    if abs(dy) <= cdx:
-                        new_cost = best_cost + dy + ceil((cdx - dy) / 2)
-                        if new_cost < best[(nx, ny)]:
-                            best[(nx, ny)] = new_cost
-                            q.put((new_cost, (nx, ny)))
-        raise AssertionError
+        return self.solve(input_data)
 
     @ec_samples(
         (
