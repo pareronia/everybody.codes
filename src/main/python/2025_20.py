@@ -3,7 +3,6 @@
 # everybody.codes 2025 Quest 20
 #
 
-import itertools
 import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -54,10 +53,6 @@ Cell = tuple[int, int]
 RotatedCell = tuple[Cell, int]
 
 
-def parity(cell: Cell) -> bool:
-    return cell[0] % 2 == cell[1] % 2
-
-
 @dataclass(frozen=True)
 class Triangle:
     cells: set[Cell]
@@ -98,7 +93,7 @@ class Triangle:
                         tr.add((rrr, ccc))
                     case _:
                         pass
-                if parity((rr, cc)):
+                if cls.is_down_cell((rr, cc)):
                     rr -= 1
                 else:
                     cc -= 1
@@ -122,34 +117,47 @@ class Triangle:
                         tr.add((rrr, ccc))
                     case _:
                         pass
-                if parity((rr, cc)):
+                if cls.is_down_cell((rr, cc)):
                     cc -= 1
                 else:
                     rr += 1
                 ccc += 1
         return cls(tr, (-1, -1), end)
 
+    @classmethod
+    def is_down_cell(cls, cell: Cell) -> bool:
+        return cell[0] % 2 == cell[1] % 2
+
+    def get_right(self, cell: Cell) -> Cell:
+        return (cell[0], cell[1] + 1)
+
+    def get_down(self, cell: Cell) -> Cell | None:
+        return None if self.is_down_cell(cell) else (cell[0] + 1, cell[1])
+
 
 class Solution(SolutionBase[Output1, Output2, Output3]):
     def part_1(self, input_data: InputData) -> Output1:
+        def count_trampolines_right_and_down(cell: Cell) -> int:
+            cells = [triangle.get_right(cell)]
+            down = triangle.get_down(cell)
+            if down is not None:
+                cells.append(down)
+            return sum(c in triangle.cells for c in cells)
+
         triangle = Triangle.from_input(input_data)
         return sum(
-            sum(
-                (
-                    (r, c + 1) in triangle.cells,
-                    not parity((r, c)) and (r + 1, c) in triangle.cells,
-                )
-            )
-            for r, c in triangle.cells
+            count_trampolines_right_and_down(cell) for cell in triangle.cells
         )
 
     def solve_maze(self, triangles: list[Triangle]) -> int:
         def adjacent(cell: RotatedCell) -> Iterator[RotatedCell]:
             (r, c), lyr = cell
             nlyr = lyr if len(triangles) == 1 else (lyr + 1) % len(triangles)
-            for n in itertools.chain(
-                ((r, c), (r + (-1 if parity((r, c)) else 1), c)),
-                ((r, c + dc) for dc in (-1, 1)),
+            for n in (
+                (r, c),
+                (r + (-1 if Triangle.is_down_cell((r, c)) else 1), c),
+                (r, c + 1),
+                (r, c - 1),
             ):
                 if n in triangles[nlyr].cells:
                     yield (n, nlyr)
